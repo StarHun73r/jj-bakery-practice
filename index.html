@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JJ Bakery Register Practice</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Practice toolbar (not part of the real register) -->
+  <div class="trainer">
+    <strong id="brand">JJ Bakery</strong>
+    <div class="mode-switch">
+      <button class="mode-btn active" data-mode="register">Register</button>
+      <button class="mode-btn" data-mode="practice">Practice</button>
+      <button class="mode-btn" data-mode="drill">Find it</button>
+      <button class="mode-btn" data-mode="flash">Flashcards</button>
+      <button class="mode-btn" data-mode="cases">Cases</button>
+      <button class="mode-btn" data-mode="photos">Photos</button>
+    </div>
+    <div class="trainer-tools study-only">
+      <label class="chk">Deck
+        <select id="deck"><option value="all">Everything</option></select>
+      </label>
+      <label class="chk drill-only"><input type="checkbox" id="drill-photos"> Photos only</label>
+      <label class="chk" title="Go through every item in the deck once, in random order, before any repeats"><input type="checkbox" id="bag-mode"> Every item once</label>
+      <span class="muted" id="bag-left"></span>
+    </div>
+    <div class="trainer-tools tags-toggle">
+      <label class="chk"><input type="checkbox" id="case-tags" checked> Show name tags</label>
+    </div>
+    <div class="trainer-tools photos-only">
+      <span>Tap an item to add its photo ·</span>
+      <span id="photo-count"></span>
+      <button class="tool-btn" id="publish-btn" disabled>Upload to GitHub</button>
+      <span class="muted" id="publish-status"></span>
+    </div>
+    <div class="trainer-tools practice-only">
+      <select id="difficulty">
+        <option value="easy">Easy</option>
+        <option value="medium" selected>Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+      <label class="chk"><input type="checkbox" id="photo-only"> Photos only</label>
+      <button class="tool-btn" id="skip-order">New customer</button>
+    </div>
+  </div>
+
+  <div class="stage">
+    <!-- ================= the iPad screen ================= -->
+    <div class="ipad">
+      <div class="statusbar">
+        <span id="sb-time"></span>&nbsp;&nbsp;<span id="sb-date"></span>
+        <span class="sb-right">
+          <svg viewBox="0 0 16 12" width="15"><path d="M8 11.5l2-2.2a2.9 2.9 0 00-4 0zM3.4 6.5l1.3 1.4a4.7 4.7 0 016.6 0l1.3-1.4a6.6 6.6 0 00-9.2 0zM.8 3.7l1.3 1.4a8.4 8.4 0 0111.8 0l1.3-1.4a10.3 10.3 0 00-14.4 0z" fill="currentColor"/></svg>
+          100% <span class="battery"></span>
+        </span>
+      </div>
+
+      <div class="screen">
+        <!-- LEFT: order panel -->
+        <section class="order">
+          <div class="order-head">
+            <button class="icon-btn" id="back-btn" title="Back">
+              <svg viewBox="0 0 12 20" width="12"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <div class="order-title">
+              <div class="t1">New Order</div>
+              <div class="t2" id="order-type">Take Out</div>
+            </div>
+            <button class="icon-btn" title="Order details">
+              <svg viewBox="0 0 22 26" width="22"><path d="M3 1h11l6 6v17a1 1 0 01-1 1H3a1 1 0 01-1-1V2a1 1 0 011-1z M14 1v6h6 M6 13h10 M6 17h10 M6 21h10" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+          <div class="order-sub">
+            <button class="icon-btn" title="Customer">
+              <svg viewBox="0 0 30 30" width="30"><circle cx="15" cy="15" r="13.5" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="15" cy="12" r="5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 24.5c2-4 5.3-6 9-6s7 2 9 6" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+            </button>
+            <button class="dots" id="dots-btn" title="More">•••</button>
+          </div>
+
+          <div class="lines" id="lines"></div>
+
+          <div class="summary">
+            <div><span>Discounts:</span><span id="s-disc">$0.00</span></div>
+            <div><span>Sub Total:</span><span id="s-sub">$0.00</span></div>
+            <div><span>Surcharge:</span><span id="s-sur">$0.00</span></div>
+            <div><span>Tax:</span><span id="s-tax">$0.00</span></div>
+          </div>
+          <div class="hold-row">
+            <button class="outline-btn" id="hold-btn">Hold</button>
+            <button class="outline-btn" id="send-btn">Send</button>
+            <div class="tot">
+              <div><span>Total:</span><span id="s-total">$0.00</span></div>
+              <div><span>Items:</span><span id="s-items">0</span></div>
+            </div>
+          </div>
+          <div class="toolbar">
+            <button class="tb" data-msg="Discount Order">
+              <svg viewBox="0 0 24 24"><path d="M5 19L19 5" stroke="currentColor" stroke-width="1.8"/><circle cx="7" cy="7" r="2.6" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="17" cy="17" r="2.6" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+              <span>Discount<br>Order</span>
+            </button>
+            <button class="tb" data-msg="Dining Option">
+              <svg viewBox="0 0 30 24"><path d="M3 2v7a2 2 0 002 2v11M5 2v7M7 2v7a2 2 0 01-2 2M27 2c-3 1-3 6-3 9h3v11" stroke="currentColor" stroke-width="1.6" fill="none"/><circle cx="15" cy="12" r="7" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+              <span>Dining<br>Option</span>
+            </button>
+            <button class="tb" data-msg="Print Guest Check">
+              <svg viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 17H3V9h18v8h-3M6 14h12v7H6z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/></svg>
+              <span>Print<br>Guest Check</span>
+            </button>
+            <button class="tb" data-msg="Open Cash Drawer">
+              <svg viewBox="0 0 24 24"><path d="M5 4h14l2 9H3zM3 13h18v6H3zM10 16h4" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/></svg>
+              <span>Open<br>Cash Drawer</span>
+            </button>
+            <span class="chev">›</span>
+            <button class="pay-btn" id="pay-btn">
+              <span class="amt" id="pay-amt">$0.00</span>
+              <span class="lbl">Pay</span>
+            </button>
+          </div>
+        </section>
+
+        <!-- RIGHT: menu buttons -->
+        <section class="menu">
+          <div class="menu-head">
+            <div class="crumbs" id="crumbs"></div>
+            <div class="search hidden" id="search">
+              <input id="search-input" placeholder="Search items" autocomplete="off">
+              <button class="link" id="search-close">Cancel</button>
+            </div>
+            <div class="menu-tools">
+              <button class="icon-btn" id="full-btn" title="Full screen">
+                <svg viewBox="0 0 24 24" width="24"><path d="M4 4l7 7M4 4v6M4 4h6M20 20l-7-7M20 20v-6M20 20h-6" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+              </button>
+              <button class="icon-btn" id="search-btn" title="Search">
+                <svg viewBox="0 0 24 24" width="24"><circle cx="10" cy="10" r="7" stroke="currentColor" stroke-width="2" fill="none"/><path d="M15 15l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </button>
+              <span class="staff" id="staff">Morning S.</span>
+              <button class="icon-btn" title="Log out">
+                <svg viewBox="0 0 26 24" width="26"><path d="M17 5.5A9 9 0 103 12a9 9 0 0014 6.5M10 12h15M20 7l5 5-5 5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="grid" id="grid"></div>
+        </section>
+      </div>
+    </div>
+
+    <!-- ================= flashcards ================= -->
+    <!-- ================= display cases ================= -->
+    <section class="cases-panel cases-only" id="cases-list"></section>
+
+    <section class="flash-panel flash-only">
+      <div class="flash-empty hidden" id="flash-empty">
+        <h2>No flashcards yet</h2>
+        <p>Flashcards are made from the photos you add. Go to <strong>Photos</strong>, tap an item, and add its picture —
+          it'll show up here. Add a few at a time as you learn them.</p>
+        <button class="tbtn primary" id="flash-to-photos">Add photos</button>
+      </div>
+      <div class="flash-card" id="flash-card">
+        <div class="flash-progress muted" id="flash-progress"></div>
+        <img id="flash-photo" alt="">
+        <p class="flash-q">What is this, and where is it on the register?</p>
+        <div class="flash-answer hidden" id="flash-answer">
+          <div class="flash-name" id="flash-name"></div>
+          <div class="muted" id="flash-button"></div>
+          <img class="flash-tag hidden" id="flash-tag" alt="">
+          <div class="hint" id="flash-path"></div>
+          <div class="muted" id="flash-pos"></div>
+        </div>
+        <div class="flash-buttons">
+          <button class="tbtn primary" id="flash-reveal">Show answer <span class="key">space</span></button>
+          <div class="hidden" id="flash-grade">
+            <button class="tbtn danger-fill" id="flash-missed">Missed it <span class="key">←</span></button>
+            <button class="tbtn ok-fill" id="flash-got">Got it <span class="key">→</span></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= find it drill ================= -->
+    <aside class="customer drill-only">
+      <div class="cust-top"><strong>Find this item:</strong><span class="timer" id="drill-timer">0s</span></div>
+      <div class="cust-lines"><div id="drill-card"></div></div>
+      <div class="drill-wrong" id="drill-wrong"></div>
+      <div class="drill-actions">
+        <button class="hint-btn" id="drill-show">Show me</button>
+        <button class="hint-btn" id="drill-skip">Skip</button>
+      </div>
+      <div class="drill-last" id="drill-last"></div>
+      <div class="stats muted" id="drill-stats"></div>
+    </aside>
+
+    <!-- ================= practice customer ================= -->
+    <aside class="customer practice-only" id="customer">
+      <div class="cust-top">
+        <div><strong id="cust-name"></strong></div>
+        <span class="timer" id="timer">0:00</span>
+      </div>
+      <div class="card-chip" id="cust-pay"></div>
+      <div class="cust-lines" id="cust-lines"></div>
+      <div class="stats muted" id="stats"></div>
+    </aside>
+  </div>
+
+  <!-- Tap a line on the ticket -->
+  <div class="overlay hidden" id="line-overlay">
+    <div class="modal small">
+      <h2 id="line-title"></h2>
+      <div class="qty-row">
+        <button class="round" id="line-minus">−</button>
+        <span id="line-qty">1</span>
+        <button class="round" id="line-plus">+</button>
+      </div>
+      <div class="modal-foot">
+        <button class="tbtn danger" id="line-del">Delete</button>
+        <button class="tbtn hidden" id="line-mod">Modify</button>
+        <button class="tbtn primary" id="line-done">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modifier (option) popup -->
+  <div class="overlay hidden" id="mod-overlay">
+    <div class="modal">
+      <div class="modal-head">
+        <h2 id="mod-title"></h2>
+        <span id="mod-price" class="muted"></span>
+      </div>
+      <div id="mod-groups"></div>
+      <div class="modal-foot">
+        <button class="tbtn" id="mod-cancel">Cancel</button>
+        <button class="tbtn primary" id="mod-ok">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment -->
+  <div class="overlay hidden" id="pay-overlay">
+    <div class="modal">
+      <div class="modal-head">
+        <h2>Payment</h2>
+        <span class="muted">Total <strong id="pay-total"></strong></span>
+      </div>
+      <div id="pay-body"></div>
+    </div>
+  </div>
+
+  <!-- Practice result -->
+  <div class="overlay hidden" id="result-overlay">
+    <div class="modal">
+      <div class="modal-head"><h2 id="result-title"></h2></div>
+      <div id="result-body"></div>
+      <div class="modal-foot" id="result-foot"></div>
+    </div>
+  </div>
+
+  <!-- Photos mode: add / change an item's photo -->
+  <div class="overlay hidden" id="photo-overlay">
+    <div class="modal photo-modal">
+      <h2 id="photo-title"></h2>
+      <div class="photo-details" id="photo-details"></div>
+      <div class="photo-stack">
+        <div class="photo-preview" id="photo-preview"></div>
+        <figure id="photo-plate-box"><div class="photo-tag" id="photo-plate"></div><figcaption id="photo-plate-cap">Name tag</figcaption></figure>
+      </div>
+      <button class="tbtn primary photo-reveal" id="photo-reveal">Show name tag</button>
+      <p class="muted small-note">Tap a picture to see it full size. <a href="#" id="photo-original">See the full original photo</a></p>
+      <p class="muted small-note" id="photo-save-note"></p>
+      <input type="file" id="photo-file" accept="image/*" hidden>
+      <div class="modal-foot">
+        <button class="tbtn danger" id="photo-remove">Remove</button>
+        <button class="tbtn" id="photo-close">Done</button>
+        <button class="tbtn primary" id="photo-pick">Choose photo</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="zoom hidden" id="zoom"><img alt=""></div>
+
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="js/menu-data.js"></script>
+  <script src="js/photos-manifest.js"></script>
+  <script src="js/photo-sources.js"></script>
+  <script src="js/full-names.js"></script>
+  <script src="js/display-cases.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
