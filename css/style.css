@@ -304,6 +304,7 @@ body.cust-bottom .customer .stats { grid-column: 3; justify-self: end; }
 .sheet-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; color: #eee; margin-bottom: 10px; }
 .sheet-bar select, .sheet-bar input[type=search] { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid #ccc; }
 .sheet-bar input[type=search] { flex: 1 1 180px; min-width: 0; }
+.sheet-bar .tbtn { color: #222; }
 .sheet-sec { background: #fff; border-radius: 14px; padding: 14px; color: #333; margin-bottom: 12px; }
 .sheet-sec h2 { margin: 0 0 10px; font-size: 1.15rem; }
 .sheet-sec h2 .muted { font-size: .85rem; font-weight: 400; }
@@ -321,3 +322,30 @@ body.cust-bottom .customer .stats { grid-column: 3; justify-self: end; }
 .sc-note { color: #333; border-top: 1px dashed #ddd; padding-top: 4px; }
 .sc-none { color: #999; font-style: italic; }
 @media (max-width: 700px) { .sheet-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } .sheet-card .photo { height: 120px; } }
+
+/* Sheet view: the plain photo sheet (red name over each whole photo, 5 across), made to print */
+.sheet-panel.print .sheet-sec { border-radius: 4px; padding: 10px 8px; }
+.sheet-panel.print .sheet-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px 4px; align-items: start; }
+.sheet-panel.print .sheet-card { border: 0; border-radius: 0; background: none; cursor: pointer; }
+.sheet-panel.print .sheet-card .photo { height: auto; background: none !important; }
+.sheet-panel.print .sheet-card .photo img { height: auto; object-fit: contain; }
+.sheet-panel.print .sheet-card .photo:not(:has(img)) { height: 110px; background: #eef0f2 !important; color: #9aa3ab; }
+.sheet-panel.print .sc-body { order: -1; padding: 0 0 2px; gap: 0; }
+.sheet-panel.print .sc-name { font-size: .78rem; line-height: 1.2; color: #c00; }
+.sheet-panel.print .sc-meta { font-size: .7rem; }
+.sheet-panel.print .sc-btn, .sheet-panel.print .sc-note { display: none; }
+@media (max-width: 700px) { .sheet-panel.print .sheet-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+@media print {
+  @page { margin: 10mm; }
+  html, body { height: auto; background: #fff; }
+  body { display: block; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .trainer, .sheet-bar, .overlay, .zoom, .toast, .stage > :not(.sheet-panel) { display: none !important; }
+  .stage { display: block; padding: 0; }
+  .sheet-panel { overflow: visible; }
+  .sheet-sec { padding: 0 !important; margin: 0 0 6mm; color: #000; }
+  .sheet-sec h2 { font-size: 11pt; break-after: avoid; }
+  .sheet-card { break-inside: avoid; }
+  .sheet-panel.print .sheet-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .sheet-panel:not(.print) .sheet-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}

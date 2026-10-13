@@ -924,6 +924,17 @@
     if (!shown) box.innerHTML = "<div class='sheet-sec muted'>Nothing matches.</div>";
   }
   ["sheet-folder", "sheet-photos"].forEach(function (id) { $(id).onchange = renderSheet; });
+  // Cards (photo, name, price, spot, note) or Sheet (just name + whole photo, for printing)
+  function setSheetView(v) {
+    document.querySelector(".sheet-panel").classList.toggle("print", v === "print");
+    document.querySelectorAll(".view-btn").forEach(function (b) { b.classList.toggle("active", b.dataset.view === v); });
+    try { localStorage.setItem("jj-sheet-view", v); } catch (e) {}
+  }
+  document.querySelectorAll(".view-btn").forEach(function (b) { b.onclick = function () { setSheetView(b.dataset.view); }; });
+  try { setSheetView(localStorage.getItem("jj-sheet-view") === "print" ? "print" : "cards"); } catch (e) { setSheetView("cards"); }
+  // The claude.ai copy runs in a frame that can't print, so the button only shows on the real site
+  if (window.self !== window.top) $("sheet-print").classList.add("hidden");
+  $("sheet-print").onclick = function () { window.print(); };
   $("sheet-find").oninput = renderSheet;
 
   // "Show name tags" switch: off hides names, prices and tags so you can quiz yourself
@@ -960,7 +971,7 @@
     state.mode = mode;
     state.guide = null;
     $("bag-left").textContent = "";
-    document.querySelectorAll(".mode-btn").forEach(function (b) { b.classList.toggle("active", b.dataset.mode === mode); });
+    document.querySelectorAll(".mode-btn[data-mode]").forEach(function (b) { b.classList.toggle("active", b.dataset.mode === mode); });
     ["practice", "photos", "drill", "flash", "cases", "sheet"].forEach(function (m) { document.body.classList.toggle(m, mode === m); });
     state.practice = null;
     state.ticket = [];
@@ -1219,7 +1230,7 @@
   });
   $("zoom").onclick = function () { $("zoom").classList.add("hidden"); };
 
-  document.querySelectorAll(".mode-btn").forEach(function (b) { b.onclick = function () { setMode(b.dataset.mode); }; });
+  document.querySelectorAll(".mode-btn[data-mode]").forEach(function (b) { b.onclick = function () { setMode(b.dataset.mode); }; });
   $("skip-order").onclick = newOrder;
   $("difficulty").onchange = newOrder;
   $("photo-only").onchange = function () { if (state.practice) newOrder(); };

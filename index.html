@@ -162,6 +162,11 @@
     <!-- ================= reference sheet ================= -->
     <section class="sheet-panel sheet-only">
       <div class="sheet-bar">
+        <div class="mode-switch sheet-view" role="group" aria-label="View">
+          <button class="mode-btn view-btn" data-view="cards">Cards</button>
+          <button class="mode-btn view-btn" data-view="print">Sheet</button>
+        </div>
+        <button class="tbtn" id="sheet-print">Print</button>
         <select id="sheet-folder" aria-label="Folder"><option value="all">Every folder</option></select>
         <input type="search" id="sheet-find" placeholder="Search name or note" aria-label="Search">
         <select id="sheet-photos" aria-label="Photos"><option value="all">All items</option><option value="have">With photos</option><option value="missing">Missing photos</option></select>
