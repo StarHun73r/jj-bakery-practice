@@ -8,7 +8,7 @@ body.locked > :not(.lock):not(script) { visibility: hidden; }
 .lock-dots { display: flex; gap: 10px; }
 .lock-dots span { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #8a929a; }
 .lock-dots span.on { background: #1d9bd7; border-color: #1d9bd7; }
-.lock-pad { display: grid; grid-template-columns: repeat(3, 64px); grid-template-rows: repeat(2, 64px); gap: 8px; margin-top: 6px; }
+.lock-pad { display: grid; grid-template-columns: repeat(3, 64px); grid-template-rows: repeat(2, 64px) 40px; gap: 8px; margin-top: 6px; }
 .lock-pad button { font: inherit; cursor: pointer; border: 0; border-radius: 12px; background: #3a3f44; color: #fff; font-size: 1.4rem; }
 .lock-pad button:active { background: #1d9bd7; }
 .lock-pad [data-dir=up] { grid-column: 2; }
@@ -19,3 +19,4 @@ body.locked > :not(.lock):not(script) { visibility: hidden; }
 @keyframes lock-shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
 @media (prefers-reduced-motion: reduce) { .lock.wrong .lock-box { animation: none; } }
 .lock[hidden] { display: none; }
+.lock-pad .lock-clear { grid-column: 1 / 4; grid-row: 3; font-size: .95rem; background: transparent; border: 1px solid #5a6168; color: #ccc; }
