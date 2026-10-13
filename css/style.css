@@ -49,7 +49,8 @@ body.flash .ipad, body.cases .ipad { display: none; }
 .statusbar { display: flex; font-size: 12px; padding: 4px 12px 0; color: #333; }
 .sb-right { margin-left: auto; display: flex; align-items: center; gap: 5px; }
 .battery { width: 22px; height: 11px; border: 1.5px solid #333; border-radius: 3px; background: linear-gradient(#3cba54, #3cba54) 1px 1px / calc(100% - 2px) calc(100% - 2px) no-repeat; }
-.screen { flex: 1; display: grid; grid-template-columns: minmax(300px, 37%) minmax(0, 1fr); min-height: 0; }
+/* Measured from the store's iPad photo: the order panel is ~45% of the screen width */
+.screen { flex: 1; display: grid; grid-template-columns: minmax(300px, 45%) minmax(0, 1fr); min-height: 0; }
 
 .icon-btn { background: none; border: 0; color: var(--blue); padding: 4px; display: inline-flex; align-items: center; }
 
@@ -84,7 +85,7 @@ body.flash .ipad, body.cases .ipad { display: none; }
 .pay-btn.ready { background: var(--blue); color: #fff; border-color: var(--blue); }
 
 /* ---------- menu (right) ---------- */
-.menu { min-width: 0; display: flex; flex-direction: column; min-height: 0; padding: 0 14px; }
+.menu { min-width: 0; display: flex; flex-direction: column; min-height: 0; padding: 0 5% 0 2.5%; }
 .menu-head { display: flex; align-items: center; gap: 10px; min-height: 52px; }
 .crumbs { flex: 1; min-width: 0; color: var(--blue); font-size: 1.05rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .crumbs a { cursor: pointer; }
@@ -94,7 +95,7 @@ body.flash .ipad, body.cases .ipad { display: none; }
 .link { background: none; border: 0; color: var(--blue); }
 .menu-tools { display: flex; align-items: center; gap: 10px; }
 .staff { color: var(--muted); font-size: .95rem; }
-.grid { --cols: 5; flex: 1; overflow-x: auto; overflow-y: hidden; display: grid; grid-template-columns: repeat(var(--cols), var(--bw, 120px)); grid-auto-rows: var(--bh, 130px); scroll-snap-type: x proximity; scrollbar-width: thin; gap: 9px; align-content: start; padding-bottom: 14px; }
+.grid { --cols: 5; flex: 1; overflow-x: auto; overflow-y: hidden; display: grid; grid-template-columns: repeat(var(--cols), var(--bw, 120px)); grid-auto-rows: var(--bh, 130px); scroll-snap-type: x proximity; scrollbar-width: thin; gap: var(--gap, 9px); align-content: start; padding-bottom: 14px; }
 .btn {
   scroll-snap-align: start;
   border: 0; border-radius: 3px; color: #fff;

@@ -169,7 +169,7 @@
   // scale it to the space left beside or above the practice order card, so it
   // never looks stretched on wide screens like a MacBook. Phones (<= 900px wide)
   // keep the stacked layout.
-  var IPAD_RATIO = 1.44;
+  var IPAD_RATIO = 4 / 3;   // the store's iPad screen is 4:3 (measured from the register photo)
   function fitIpad() {
     var ipad = document.querySelector(".ipad"), stage = ipad.parentNode;
     var fit = window.innerWidth > 900;
@@ -191,20 +191,25 @@
 
   var lastSize = "";
   function sizeButtons() {
-    var grid = $("grid"), gap = 9, menu = grid.parentNode;
+    // Buttons are square on the real register, with gaps ~7.5% of a button.
+    var grid = $("grid"), menu = grid.parentNode;
     var cs = getComputedStyle(menu);
     var width = menu.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    var gap = Math.max(5, Math.round(width / 70));
     var bw = Math.floor((width - gap * (VISIBLE_COLS - 1)) / VISIBLE_COLS);
-    var bottom = Math.min(window.innerHeight, document.querySelector(".ipad").getBoundingClientRect().bottom);
-    var room = bottom - grid.getBoundingClientRect().top - 14 - 20; // 20 = sideways scrollbar
-    var bh = Math.floor((room - gap * (ROWS - 1)) / ROWS);
-    bh = Math.min(Math.max(bh, Math.round(bw * 0.75)), Math.round(bw * 1.15));
-    if (window.innerWidth <= 700) bh = Math.round(bw * 0.9);   // phones scroll, so size buttons by width only
-    var size = bw + "/" + bh;
+    if (window.innerWidth > 700) {   // phones scroll, so they size by width only
+      // keep all 6 rows on screen: shrink (still square) if the height is short
+      var bottom = Math.min(window.innerHeight, document.querySelector(".ipad").getBoundingClientRect().bottom);
+      var room = bottom - grid.getBoundingClientRect().top - 14 - 20; // 20 = sideways scrollbar
+      bw = Math.min(bw, Math.floor((room - gap * (ROWS - 1)) / ROWS));
+    }
+    var bh = bw;
+    var size = bw + "/" + gap;
     if (size === lastSize || bw <= 0) return;   // nothing changed: leave the page alone
     lastSize = size;
     grid.style.setProperty("--bw", bw + "px");
     grid.style.setProperty("--bh", bh + "px");
+    grid.style.setProperty("--gap", gap + "px");
   }
   new ResizeObserver(function () { requestAnimationFrame(sizeButtons); }).observe($("grid").parentNode);
   window.addEventListener("resize", sizeButtons);
