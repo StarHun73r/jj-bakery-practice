@@ -23,7 +23,12 @@
         <select id="deck"><option value="all">Everything</option></select>
       </label>
       <label class="chk drill-only"><input type="checkbox" id="drill-photos"> Photos only</label>
-      <label class="chk" title="Go through every item in the deck once, in random order, before any repeats"><input type="checkbox" id="bag-mode"> Every item once</label>
+      <label class="mode-slider" title="Random: items are picked at random every time (breads more often in Practice). Every item once: the whole deck is shuffled and each item comes up once before any repeats.">
+        <span class="ms-off">Random</span>
+        <input type="checkbox" id="bag-mode" role="switch" aria-label="Every item once">
+        <span class="ms-track"><span class="ms-knob"></span></span>
+        <span class="ms-on">Every item once</span>
+      </label>
       <span class="muted" id="bag-left"></span>
     </div>
     <div class="trainer-tools tags-toggle">
