@@ -5,8 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>JJ Bakery Register Practice</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/lock.css">
 </head>
 <body>
+  <!-- Lock screen: arrow code to get in (js/lock.js) -->
+  <div class="lock" id="lock" role="dialog" aria-label="Locked">
+    <div class="lock-box">
+      <h1>JJ Bakery</h1>
+      <p>Enter the arrow code to continue.</p>
+      <div class="lock-dots" id="lock-dots"></div>
+      <div class="lock-pad">
+        <button data-dir="up" aria-label="Up">&#9650;</button>
+        <button data-dir="left" aria-label="Left">&#9664;</button>
+        <button data-dir="down" aria-label="Down">&#9660;</button>
+        <button data-dir="right" aria-label="Right">&#9654;</button>
+      </div>
+    </div>
+  </div>
+  <script src="js/lock.js"></script>
   <!-- Practice toolbar (not part of the real register) -->
   <div class="trainer">
     <strong id="brand">JJ Bakery</strong>

@@ -1,0 +1,20 @@
+/* Lock screen (js/lock.js), shared by index.html and review.html */
+
+.lock { font-family: -apple-system, "Helvetica Neue", "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif; position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 16px; background: #23272b; color: #eee; }
+body.locked > :not(.lock):not(script) { visibility: hidden; }
+.lock-box { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.lock-box h1 { margin: 0; font-size: 1.8rem; }
+.lock-box p { margin: 0; color: #aab; }
+.lock-dots { display: flex; gap: 10px; }
+.lock-dots span { width: 14px; height: 14px; border-radius: 50%; border: 2px solid #8a929a; }
+.lock-dots span.on { background: #1d9bd7; border-color: #1d9bd7; }
+.lock-pad { display: grid; grid-template-columns: repeat(3, 64px); grid-template-rows: repeat(2, 64px); gap: 8px; margin-top: 6px; }
+.lock-pad button { font: inherit; cursor: pointer; border: 0; border-radius: 12px; background: #3a3f44; color: #fff; font-size: 1.4rem; }
+.lock-pad button:active { background: #1d9bd7; }
+.lock-pad [data-dir=up] { grid-column: 2; }
+.lock-pad [data-dir=left] { grid-column: 1; grid-row: 2; }
+.lock-pad [data-dir=down] { grid-column: 2; grid-row: 2; }
+.lock-pad [data-dir=right] { grid-column: 3; grid-row: 2; }
+.lock.wrong .lock-box { animation: lock-shake .35s; }
+@keyframes lock-shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+@media (prefers-reduced-motion: reduce) { .lock.wrong .lock-box { animation: none; } }
