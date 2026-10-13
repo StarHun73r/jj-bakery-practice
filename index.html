@@ -17,6 +17,7 @@
       <button class="mode-btn" data-mode="flash">Flashcards</button>
       <button class="mode-btn" data-mode="cases">Cases</button>
       <button class="mode-btn" data-mode="photos">Photos</button>
+      <button class="mode-btn" data-mode="sheet">Sheet</button>
     </div>
     <div class="trainer-tools study-only">
       <label class="chk">Deck
@@ -158,6 +159,17 @@
     <!-- ================= display cases ================= -->
     <section class="cases-panel cases-only" id="cases-list"></section>
 
+    <!-- ================= reference sheet ================= -->
+    <section class="sheet-panel sheet-only">
+      <div class="sheet-bar">
+        <select id="sheet-folder" aria-label="Folder"><option value="all">Every folder</option></select>
+        <input type="search" id="sheet-find" placeholder="Search name or note" aria-label="Search">
+        <select id="sheet-photos" aria-label="Photos"><option value="all">All items</option><option value="have">With photos</option><option value="missing">Missing photos</option></select>
+        <span class="muted" id="sheet-count"></span>
+      </div>
+      <div id="sheet-list"></div>
+    </section>
+
     <section class="flash-panel flash-only">
       <div class="flash-empty hidden" id="flash-empty">
         <h2>No flashcards yet</h2>
@@ -175,6 +187,7 @@
           <img class="flash-tag hidden" id="flash-tag" alt="">
           <div class="hint" id="flash-path"></div>
           <div class="muted" id="flash-pos"></div>
+          <p class="flash-note" id="flash-note"></p>
         </div>
         <div class="flash-buttons">
           <button class="tbtn primary" id="flash-reveal">Show answer <span class="key">space</span></button>
@@ -268,9 +281,15 @@
     <div class="modal photo-modal">
       <h2 id="photo-title"></h2>
       <div class="photo-details" id="photo-details"></div>
-      <div class="photo-stack">
-        <div class="photo-preview" id="photo-preview"></div>
-        <figure id="photo-plate-box"><div class="photo-tag" id="photo-plate"></div><figcaption id="photo-plate-cap">Name tag</figcaption></figure>
+      <div class="photo-body">
+        <div class="photo-stack">
+          <div class="photo-preview" id="photo-preview"></div>
+          <figure id="photo-plate-box"><div class="photo-tag" id="photo-plate"></div><figcaption id="photo-plate-cap">Name tag</figcaption></figure>
+        </div>
+        <aside class="photo-notes" id="photo-notes">
+          <h3>Notes</h3>
+          <p id="photo-notes-text"></p>
+        </aside>
       </div>
       <button class="tbtn primary photo-reveal" id="photo-reveal">Show name tag</button>
       <p class="muted small-note">Tap a picture to see it full size. <a href="#" id="photo-original">See the full original photo</a></p>
@@ -293,6 +312,7 @@
   <script src="js/photo-sources.js"></script>
   <script src="js/full-names.js"></script>
   <script src="js/display-cases.js"></script>
+  <script src="js/notes.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

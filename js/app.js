@@ -733,6 +733,7 @@
     $("flash-button").textContent = it.full !== it.name ? "Button: " + it.name : "";
     $("flash-path").textContent = pathText(it);
     $("flash-pos").textContent = positionText(it);
+    $("flash-note").textContent = NOTES[it.id] || "";
     $("flash-tag").classList.toggle("hidden", !TAGS[it.id]);
     if (TAGS[it.id]) $("flash-tag").src = TAGS[it.id];
     $("flash-reveal").classList.toggle("hidden", flash.shown);
@@ -869,6 +870,62 @@
       box.appendChild(sec);
     });
   }
+  // ---- Reference sheet: every item, folder by folder, in button order ----
+  // Photo, full name, price, where the button is, and the note for each item.
+  (function () {
+    var sel = $("sheet-folder");
+    TREE.forEach(function (n, i) {
+      if (n.type !== "folder") return;
+      var o = document.createElement("option");
+      o.value = i;
+      o.textContent = n.name;
+      sel.appendChild(o);
+    });
+  })();
+  function renderSheet() {
+    var box = $("sheet-list"), want = $("sheet-folder").value;
+    var find = $("sheet-find").value.trim().toLowerCase(), photoFilter = $("sheet-photos").value;
+    var shown = 0, total = 0;
+    box.innerHTML = "";
+    // one section per folder that holds items directly, in register order
+    (function walk(nodes, path) {
+      var items = nodes.filter(function (n) { return n.type === "item"; });
+      total += items.length;
+      var list = items.filter(function (it) {
+        if (photoFilter !== "all" && !PHOTOS[it.id] === (photoFilter === "have")) return false;
+        return !find || (it.full + " " + it.name + " " + (NOTES[it.id] || "")).toLowerCase().indexOf(find) >= 0;
+      });
+      if (list.length) {
+        shown += list.length;
+        var sec = document.createElement("section");
+        sec.className = "sheet-sec";
+        sec.innerHTML = "<h2>" + esc(pathText({ path: path })) + " <span class='muted'>" + list.length + " items</span></h2>" +
+          "<div class='sheet-grid'></div>";
+        list.forEach(function (it) {
+          var card = document.createElement("button");
+          card.className = "sheet-card";
+          card.innerHTML = "<div class='photo' style='background:" + it.color + "'><span class='ph'>" + esc(initials(it)) + "</span></div>" +
+            "<div class='sc-body'><div class='sc-name'>" + esc(it.full) + "</div>" +
+            (it.full !== it.name ? "<div class='sc-btn'>Button: " + esc(it.name) + "</div>" : "") +
+            "<div class='sc-meta'><span class='sc-price'>" + (it.price ? "$" + it.price.toFixed(2) : "no price yet") + "</span>" +
+            "<span class='sc-pos'>" + esc(positionText(it)) + "</span></div>" +
+            (NOTES[it.id] ? "<div class='sc-note'>" + esc(NOTES[it.id]) + "</div>"
+              : PHOTOS[it.id] ? "" : "<div class='sc-note sc-none'>No photo yet</div>") +
+            "</div>";
+          loadPhoto(it, card);
+          card.onclick = function () { openPhotoEditor(it); };
+          sec.lastChild.appendChild(card);
+        });
+        box.appendChild(sec);
+      }
+      nodes.forEach(function (n) { if (n.type === "folder") walk(n.children, path.concat(n)); });
+    })(want === "all" ? TREE : TREE[+want].children, want === "all" ? [] : [TREE[+want]]);
+    $("sheet-count").textContent = shown + " of " + total + " items";
+    if (!shown) box.innerHTML = "<div class='sheet-sec muted'>Nothing matches.</div>";
+  }
+  ["sheet-folder", "sheet-photos"].forEach(function (id) { $(id).onchange = renderSheet; });
+  $("sheet-find").oninput = renderSheet;
+
   // "Show name tags" switch: off hides names, prices and tags so you can quiz yourself
   function applyCaseTags() { document.body.classList.toggle("hide-tags", !$("case-tags").checked); }
   try { $("case-tags").checked = localStorage.getItem("jj-case-tags") !== "off"; } catch (e) {}
@@ -904,7 +961,7 @@
     state.guide = null;
     $("bag-left").textContent = "";
     document.querySelectorAll(".mode-btn").forEach(function (b) { b.classList.toggle("active", b.dataset.mode === mode); });
-    ["practice", "photos", "drill", "flash", "cases"].forEach(function (m) { document.body.classList.toggle(m, mode === m); });
+    ["practice", "photos", "drill", "flash", "cases", "sheet"].forEach(function (m) { document.body.classList.toggle(m, mode === m); });
     state.practice = null;
     state.ticket = [];
     state.path = [];
@@ -915,6 +972,7 @@
     else renderMenu();
     if (mode === "flash") nextFlash();
     if (mode === "cases") renderCases();
+    if (mode === "sheet") renderSheet();
     updatePhotoCount();
     relayout();
   }
@@ -1087,7 +1145,8 @@
     renderPhotoEditor();
     $("photo-overlay").classList.remove("hidden");
   }
-  var SOURCES = window.PHOTO_SOURCES || {};   // original photos with the name plate
+  var SOURCES = window.PHOTO_SOURCES || {};
+  var NOTES = window.ITEM_NOTES || {};   // what makes each item recognizable (js/notes.js)   // original photos with the name plate
   var TAGS = window.PHOTO_TAGS || {};         // just the name tag, cropped from the original
 
   function renderPhotoEditor() {
@@ -1099,6 +1158,8 @@
     $("photo-details").innerHTML = (it.price ? "<strong>$" + it.price.toFixed(2) + "</strong> · " : "") +
       esc(pathText(it)) + " · " + esc(positionText(it)) +
       (it.full !== it.name ? "<br>Button: " + esc(it.name) : "");
+    $("photo-notes-text").textContent = NOTES[it.id] || "No notes for this item yet.";
+    $("photo-notes-text").classList.toggle("empty", !NOTES[it.id]);
     // name tag stacked under the photo (falls back to the whole original photo)
     var tagSrc = TAGS[it.id] || SOURCES[it.id];
     var plate = $("photo-plate");

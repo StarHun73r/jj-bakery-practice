@@ -28,7 +28,8 @@ body:not(.flash) .flash-only { display: none !important; }
 body:not(.drill):not(.flash):not(.practice) .study-only { display: none !important; }
 body:not(.cases) .cases-only { display: none !important; }
 body:not(.cases):not(.photos) .tags-toggle { display: none !important; }
-body.flash .ipad, body.cases .ipad { display: none; }
+body:not(.sheet) .sheet-only { display: none !important; }
+body.flash .ipad, body.cases .ipad, body.sheet .ipad { display: none; }
 
 /* ---------- practice toolbar ---------- */
 .trainer { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 6px 14px; color: #eee; font-size: .9rem; }
@@ -197,7 +198,16 @@ body.flash .ipad, body.cases .ipad { display: none; }
 .small-note { font-size: .8rem; margin: 6px 0 0; }
 .photo-details { color: var(--muted); font-size: .9rem; margin: -2px 0 10px; line-height: 1.4; }
 .photo-details strong { color: #146c43; }
-.photo-modal { width: min(560px, 100%); }
+.photo-modal { width: min(880px, 100%); }
+/* photo + name tag on the left, notes on the right (stacked on narrow screens) */
+.photo-body { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 16px; align-items: start; }
+.photo-notes { background: #fff8e8; border: 1px solid #eedcae; border-radius: 10px; padding: 12px 14px; }
+.photo-notes h3 { margin: 0 0 6px; font-size: .95rem; }
+.photo-notes p { margin: 0; line-height: 1.5; font-size: .92rem; color: #333; }
+.photo-notes p.empty { color: var(--muted); font-style: italic; }
+@media (max-width: 700px) { .photo-body { grid-template-columns: 1fr; } }
+.flash-note { margin: 10px auto 0; max-width: 440px; line-height: 1.45; font-size: .92rem; background: #fff8e8; border: 1px solid #eedcae; border-radius: 8px; padding: 8px 10px; text-align: left; }
+.flash-note:empty { display: none; }
 .photo-stack { display: flex; flex-direction: column; gap: 8px; }
 .photo-stack figure { margin: 0; }
 .photo-stack figcaption { text-align: center; font-size: .8rem; color: var(--muted); margin-top: 4px; }
@@ -257,7 +267,8 @@ body.hide-tags .case-item .photo { height: 120px; }
 /* Photo popup with "Show name tags" off: photo first, name + tag after "Show name tag" */
 .photo-reveal { display: none; width: 100%; margin-top: 8px; }
 .photo-modal.quiz .photo-reveal { display: block; }
-.photo-modal.quiz #photo-details, .photo-modal.quiz #photo-plate-box, .photo-modal.quiz #photo-original { display: none; }
+.photo-modal.quiz #photo-details, .photo-modal.quiz #photo-plate-box, .photo-modal.quiz #photo-original, .photo-modal.quiz #photo-notes { display: none; }
+.photo-modal.quiz .photo-body { grid-template-columns: 1fr; }
 
 /* ---------- Random / Every item once slider ---------- */
 .mode-slider { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
@@ -286,4 +297,27 @@ body.cust-bottom .customer .cust-top { gap: 16px; justify-content: flex-start; }
 body.cust-bottom .customer { display: grid; grid-template-columns: auto auto 1fr; column-gap: 14px; align-items: center; }
 body.cust-bottom .customer .cust-lines { grid-column: 1 / -1; }
 body.cust-bottom .customer .stats { grid-column: 3; justify-self: end; }
-.stage > .cases-panel, .stage > .flash-panel { align-self: stretch; }
+.stage > .cases-panel, .stage > .flash-panel, .stage > .sheet-panel { align-self: stretch; }
+
+/* ---------- reference sheet: every item, in register order ---------- */
+.sheet-panel { flex: 1; overflow-y: auto; min-width: 0; }
+.sheet-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; color: #eee; margin-bottom: 10px; }
+.sheet-bar select, .sheet-bar input[type=search] { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid #ccc; }
+.sheet-bar input[type=search] { flex: 1 1 180px; min-width: 0; }
+.sheet-sec { background: #fff; border-radius: 14px; padding: 14px; color: #333; margin-bottom: 12px; }
+.sheet-sec h2 { margin: 0 0 10px; font-size: 1.15rem; }
+.sheet-sec h2 .muted { font-size: .85rem; font-weight: 400; }
+.sheet-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
+.sheet-card { display: flex; flex-direction: column; border: 1px solid #e3e7ea; border-radius: 10px; background: #fafbfc; padding: 0; overflow: hidden; text-align: left; }
+.sheet-card:hover { border-color: var(--blue); }
+.sheet-card .photo { height: 150px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 1.5rem; }
+.sheet-card .photo img { width: 100%; height: 100%; object-fit: cover; }
+.sc-body { padding: 7px 9px 9px; display: flex; flex-direction: column; gap: 3px; font-size: .8rem; line-height: 1.3; }
+.sc-name { font-weight: 700; font-size: .88rem; color: #a3271b; }
+.sc-btn { color: #666; }
+.sc-meta { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 2px 8px; }
+.sc-price { color: #146c43; font-weight: 700; }
+.sc-pos { color: #555; }
+.sc-note { color: #333; border-top: 1px dashed #ddd; padding-top: 4px; }
+.sc-none { color: #999; font-style: italic; }
+@media (max-width: 700px) { .sheet-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); } .sheet-card .photo { height: 120px; } }
