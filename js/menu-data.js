@@ -38,7 +38,7 @@ window.MENU_TREE = [
   F("麵包Bread", BLUE, [
     F("麵包Bread", [
       // page 1
-      I("pineapple-bun",       "菠蘿麵包 Pineapple Bun", 0),
+      I("pineapple-bun",       "菠蘿麵包 Pineapple Bun", 1.90),
       I("garlic-stick",        "香蒜條 Garlic stic", 0),             // end hidden by glare in the photo
       I("corn-bun",            "玉米麵包 Corn Bun", 0),
       I("custard-bun",         "克林姆麵包Custard Bun", 0),
@@ -60,14 +60,14 @@ window.MENU_TREE = [
       I("taro-buttermilk",     "芋泥奶酥 Taro w/ ButterMi...", 0),
       I("raisin-bun",          "葡萄乾毛毛蟲Raisin Bun", 0),
       I("porksong-bun",        "肉鬆麵包 PorkSong Bun", 0),
-      I("pine-buttermilk",     "菠蘿奶酥 Pineapple w/Butter...", 0),
+      I("pine-buttermilk",     "菠蘿奶酥 Pineapple w/Butter...", 2.30),
       I("bbq-pork-bun",        "叉燒麵包 BBQ Pork Bun", 0),
       I("meat-lovers",         "多色麵包 Meat Lover's...", 0),
       I("ham-bacon-cheese",    "培根辮子 Ham&Bacon Chee...", 0),
       I("cheese-cake-bread",   "奧莉維 Cheese Cake Br...", 0),
       I("porksong-puff",       "起酥肉鬆 Porksong Bun w/P...", 0),
       I("buttermilk-puff",     "起酥奶酥 Buttermilk B.w/Puff...", 0),
-      I("hot-dog-bun",         "熱狗麵包 Hot Dog Bun", 0),
+      I("hot-dog-bun",         "熱狗麵包 Hot Dog Bun", 2.55),
       // page 2 (swipe left)
       I("satay-porksong",      "沙茶肉鬆 Satay PorkSon...", 0),
       I("curry-beef-pie",      "咖哩牛派Curry Beef Pie", 0),
@@ -83,7 +83,7 @@ window.MENU_TREE = [
       I("cranberry-cheese",    "蔓越莓乳酪 Cranberr...", 0),
       I("euro-walnut",         "北歐堅果 Euro Walnut", 0),
       I("butter-rolls-5",      "奶油小餐包 (x5)Butt...", 0),
-      I("wave-bread",          "波浪麵包 Wave Bread", 0),
+      I("wave-bread",          "波浪麵包 Wave Bread", 4.05),
       I("golden-horn-5",       "金牛角 (x5)Golden Horn R...", 0),
       I("qq-mochi-4",          "QQ糬菓 (x4) Mochi S...", 0, { color: YELLOW }),
       I("day-old-3",           "隔夜麵包 (x3)Day old com...", 0),
@@ -93,10 +93,10 @@ window.MENU_TREE = [
       I("egg-salad-bun",       "蛋沙拉麵包 Egg Salad Bun", 0),
       I("strawberry-coconut",  "草莓椰香 Strawberry Coconut", 0),
       I("pigs-blanket-6",      "酥皮熱狗 (x6) Pigs in a Blan...", 0),
-      I("bacon-scone",         "培根香蔥司康 Bacon S...", 0),
+      I("bacon-scone",         "培根香蔥司康 Bacon S...", 4.99),
     ]),
     F("丹麥Danish", [
-      I("danish-cream-cheese", "丹麥乳酪 Cream Cheese...", 0, { color: YELLOW }),
+      I("danish-cream-cheese", "丹麥乳酪 Cream Cheese...", 2.75, { color: YELLOW }),
       I("danish-almond",       "丹麥杏 Almond Danish", 0),        // a character is hidden by glare in the photo
       I("danish-raisin",       "丹麥葡萄乾Raisin Danish", 0, { color: PURPLE }),
       I("danish-tuna",         "丹麥鮪魚 Tuna Danish", 0),
@@ -104,7 +104,7 @@ window.MENU_TREE = [
       I("matcha-croissant",    "抹茶杏仁可頌 Matcha...", 0),
       I("earl-grey-croissant", "伯爵紅茶可頌Earl Grey Cro...", 0),
       I("danish-ham-cheese",   "丹麥火腿起司Ham & Chees...", 0),
-      I("danish-hot-dog",      "丹麥熱狗 Hot Dog Danish", 0),
+      I("danish-hot-dog",      "丹麥熱狗 Hot Dog Danish", 3.30),
       I("med-croissant",       "中牛角 Med. Croissan...", 0),
       I("choc-strawberry",     "巧克力草莓丹麥 Chocola...", 0),
     ]),
@@ -128,7 +128,7 @@ window.MENU_TREE = [
     F("蒸Steam", [
       I("milk-mantou-1",       "鮮奶 (x1)Milk Steam B...", 0),      // characters after 鮮奶 hidden by glare
       I("wheat-mantou-1",      "全麥饅頭 (x1)Whole Wheat st...", 0),
-      I("brown-mantou-1",      "紅糖饅頭 (x1)Brown Sugar St...", 0),
+      I("brown-mantou-1",      "紅糖饅頭 (x1)Brown Sugar St...", 1.60),
       I("bbq-bao-1",           "叉燒包子 BBQ Steam B...", 2.55),
       I("bamboo-bao-1",        "香筍肉包 Bamboo Pork Ste...", 2.55),
       I("veg-pork-bao-1",      "菜肉包 Veg. w/ Pork Ste...", 0),
@@ -202,7 +202,7 @@ window.MENU_TREE = [
       I("coffee-triangle",     "咖啡三角蛋糕 Triangle...", 0),
       I("choco-triangle",      "巧克力三角蛋糕 Triangle...", 2.15),
       I("vanilla-triangle",    "香草三角蛋糕 Triangle...", 0),
-      I("sponge-cake",         "海棉蛋糕 Sponge Cake", 0),
+      I("sponge-cake",         "海棉蛋糕 Sponge Cake", 2.55),
       I("choco-hurricane",     "巧克力旋風卷 Hurrican...", 3.00),
       I("coffee-hurricane",    "咖啡旋風卷 Hurrican...", 3.05),
       I("bake-pudding",        "烤布丁 Bake Pudding", 3.05),
@@ -216,7 +216,7 @@ window.MENU_TREE = [
       I("caramel-pudding-1",   "滑溜布丁(x1)Caramel Puddi...", 3.30),
       I("marble-cake",         "虎皮大理石Marble Cake", 3.55),
       I("watermelon-cake",     "西瓜蛋糕 Watermelon Shap...", 3.55),
-      I("cupcake-4",           "杯子蛋糕(x4)Simple Cupca...", 0),
+      I("cupcake-4",           "杯子蛋糕(x4)Simple Cupca...", 3.55),
       I("german-pudding",      "德國布丁 German Pudding", 3.85),
       I("mini-pancake",        "卡士達小元寶Mini Pancake...", 4.60),
       I("orange-roll",         "橘子戚風蛋糕卷 Orange...", 4.60, { color: PURPLE }),
