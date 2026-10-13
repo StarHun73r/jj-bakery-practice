@@ -18,3 +18,4 @@ body.locked > :not(.lock):not(script) { visibility: hidden; }
 .lock.wrong .lock-box { animation: lock-shake .35s; }
 @keyframes lock-shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
 @media (prefers-reduced-motion: reduce) { .lock.wrong .lock-box { animation: none; } }
+.lock[hidden] { display: none; }

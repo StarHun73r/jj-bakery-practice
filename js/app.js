@@ -983,6 +983,7 @@
     else renderMenu();
     if (mode === "flash") nextFlash();
     if (mode === "cases") renderCases();
+    document.querySelector(".sheet-panel").hidden = mode !== "sheet";
     if (mode === "sheet") renderSheet();
     updatePhotoCount();
     relayout();
