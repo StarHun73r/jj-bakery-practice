@@ -42,8 +42,10 @@ body.flash .ipad, body.cases .ipad { display: none; }
 #publish-btn:not(:disabled) { background: #1f9d55; }
 
 /* ---------- layout ---------- */
-.stage { flex: 1; display: flex; gap: 12px; padding: 0 12px 12px; min-height: 0; }
-.ipad { flex: 1; min-width: 0; background: var(--screen); border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; }
+.stage { flex: 1; display: flex; gap: 12px; padding: 0 12px 12px; min-height: 0; justify-content: center; align-items: flex-start; }
+/* On computers and tablets the iPad keeps an iPad-like shape (fitIpad in app.js
+   sets its width/height); on phones it fills the screen as before. */
+.ipad { flex: 1; min-width: 0; align-self: stretch; background: var(--screen); border-radius: 14px; display: flex; flex-direction: column; overflow: hidden; }
 .statusbar { display: flex; font-size: 12px; padding: 4px 12px 0; color: #333; }
 .sb-right { margin-left: auto; display: flex; align-items: center; gap: 5px; }
 .battery { width: 22px; height: 11px; border: 1.5px solid #333; border-radius: 3px; background: linear-gradient(#3cba54, #3cba54) 1px 1px / calc(100% - 2px) calc(100% - 2px) no-repeat; }
@@ -157,10 +159,17 @@ body.flash .ipad, body.cases .ipad { display: none; }
   .cust-lines { flex-direction: row; overflow-x: auto; }
   .cust-card { flex: 0 0 150px; }
 }
+/* Phones: the page scrolls instead of squeezing everything into one screen */
 @media (max-width: 700px) {
-  .screen { grid-template-columns: 1fr; }
-  .order { border-right: 0; border-bottom: 1px solid var(--line); max-height: 55vh; }
-  .grid { min-height: 60vh; }
+  html, body { height: auto; }
+  body { min-height: 100%; }
+  .stage { flex: none; }
+  .ipad { flex: none; }
+  .screen { flex: none; grid-template-columns: 1fr; }
+  .order { border-right: 0; border-bottom: 1px solid var(--line); }
+  .lines { flex: none; min-height: 90px; max-height: 32vh; }
+  .menu { padding-bottom: 6px; }
+  .grid { flex: none; }
 }
 
 /* ---------- practice hints ---------- */
@@ -260,3 +269,20 @@ body.hide-tags .case-item .photo { height: 120px; }
 .ms-off, .ms-on { opacity: .55; transition: opacity .15s; }
 .mode-slider:not(:has(input:checked)) .ms-off, .mode-slider:has(input:checked) .ms-on { opacity: 1; font-weight: 600; }
 @media (prefers-reduced-motion: reduce) { .ms-track, .ms-knob { transition: none; } }
+
+/* ---------- fitted iPad + order card position ---------- */
+body.fit .ipad { flex: none; align-self: auto; }
+body.fit .stage > .customer, body.fit .stage > .drill-only { align-self: stretch; }
+body.cust-bottom.fit .stage { flex-direction: column; align-items: center; }
+body.cust-bottom .stage > .customer { width: auto; flex: none; overflow-y: hidden; padding: 10px 12px; }
+body.cust-bottom .customer .cust-lines { flex-direction: row; overflow-x: auto; margin: 8px 0 4px; }
+/* bottom: compact cards, photo beside the text, so the iPad keeps most of the height */
+body.cust-bottom .customer .cust-card { flex: 0 0 270px; display: flex; }
+body.cust-bottom .customer .cust-card .photo { flex: 0 0 104px; height: 104px; }
+body.cust-bottom .customer .cust-card .photo:has(img)::after { content: "⤢"; padding: 1px 6px; }
+body.cust-bottom .customer .cust-card .txt { flex: 1; min-width: 0; font-size: .82rem; }
+body.cust-bottom .customer .cust-top { gap: 16px; justify-content: flex-start; }
+body.cust-bottom .customer { display: grid; grid-template-columns: auto auto 1fr; column-gap: 14px; align-items: center; }
+body.cust-bottom .customer .cust-lines { grid-column: 1 / -1; }
+body.cust-bottom .customer .stats { grid-column: 3; justify-self: end; }
+.stage > .cases-panel, .stage > .flash-panel { align-self: stretch; }

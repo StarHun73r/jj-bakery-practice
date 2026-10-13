@@ -165,15 +165,41 @@
   // window, never from the grid itself: measuring the grid made a feedback
   // loop (scrollbar appears -> buttons shrink -> scrollbar goes -> buttons
   // grow -> ...), which showed up as the menu jittering.
+  // Keep the iPad screen iPad-shaped (about 1.44 : 1, like the store's iPad) and
+  // scale it to the space left beside or above the practice order card, so it
+  // never looks stretched on wide screens like a MacBook. Phones (<= 900px wide)
+  // keep the stacked layout.
+  var IPAD_RATIO = 1.44;
+  function fitIpad() {
+    var ipad = document.querySelector(".ipad"), stage = ipad.parentNode;
+    var fit = window.innerWidth > 900;
+    document.body.classList.toggle("fit", fit);
+    if (!fit) { ipad.style.width = ipad.style.height = ""; return; }
+    var cs = getComputedStyle(stage), gap = 12;
+    var w = stage.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    var h = stage.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    var side = [].filter.call(stage.children, function (el) { return el !== ipad && getComputedStyle(el).display !== "none"; })[0];
+    if (side) {
+      if (document.body.classList.contains("cust-bottom") && side.classList.contains("customer")) h -= Math.min(side.scrollHeight, h * 0.42) + gap;
+      else w -= side.offsetWidth + gap;
+    }
+    var width = Math.min(w, h * IPAD_RATIO), height = width / IPAD_RATIO;
+    ipad.style.width = Math.floor(width) + "px";
+    ipad.style.height = Math.floor(height) + "px";
+  }
+  window.addEventListener("resize", function () { fitIpad(); sizeButtons(); });
+
   var lastSize = "";
   function sizeButtons() {
     var grid = $("grid"), gap = 9, menu = grid.parentNode;
     var cs = getComputedStyle(menu);
     var width = menu.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
     var bw = Math.floor((width - gap * (VISIBLE_COLS - 1)) / VISIBLE_COLS);
-    var room = window.innerHeight - grid.getBoundingClientRect().top - 14 - 20; // 20 = sideways scrollbar
+    var bottom = Math.min(window.innerHeight, document.querySelector(".ipad").getBoundingClientRect().bottom);
+    var room = bottom - grid.getBoundingClientRect().top - 14 - 20; // 20 = sideways scrollbar
     var bh = Math.floor((room - gap * (ROWS - 1)) / ROWS);
     bh = Math.min(Math.max(bh, Math.round(bw * 0.75)), Math.round(bw * 1.15));
+    if (window.innerWidth <= 700) bh = Math.round(bw * 0.9);   // phones scroll, so size buttons by width only
     var size = bw + "/" + bh;
     if (size === lastSize || bw <= 0) return;   // nothing changed: leave the page alone
     lastSize = size;
@@ -885,7 +911,20 @@
     if (mode === "flash") nextFlash();
     if (mode === "cases") renderCases();
     updatePhotoCount();
+    relayout();
   }
+
+  function relayout() { fitIpad(); lastSize = ""; sizeButtons(); }
+  // Practice order card: on the side or along the bottom (remembered in this browser)
+  function applyCustPos() {
+    document.body.classList.toggle("cust-bottom", $("cust-pos").value === "bottom");
+    relayout();
+  }
+  try { if (localStorage.getItem("jj-cust-pos") === "bottom") $("cust-pos").value = "bottom"; } catch (e) {}
+  $("cust-pos").onchange = function () {
+    try { localStorage.setItem("jj-cust-pos", this.value); } catch (e) {}
+    applyCustPos();
+  };
 
   // ------------------------------------------------------------------
   //  Photos mode: tap an item to give it a photo.
@@ -1177,7 +1216,7 @@
   $("brand").textContent = CFG.storeName;
   $("staff").textContent = CFG.staffName;
   $("order-type").textContent = CFG.orderType;
-  sizeButtons();
+  applyCustPos();
   renderMenu();
   renderTicket();
   openPhotoDB(function () { renderGrid(); updatePhotoCount(); checkServer(); });
