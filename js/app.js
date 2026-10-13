@@ -387,6 +387,18 @@
     return mods;
   }
 
+  // Breads are rung up most often at the store, so practice orders pick
+  // items from the 麵包Bread folder (bread, Danish, toast, steamed buns,
+  // sandwiches) BREAD_WEIGHT times as often as anything else.
+  // ("Every item once" still goes through every item exactly once.)
+  var BREAD_WEIGHT = 3;
+  function pickCommon(pool) {
+    var weights = pool.map(function (it) { return it.path[0] && it.path[0].name === "麵包Bread" ? BREAD_WEIGHT : 1; });
+    var r = Math.random() * weights.reduce(function (a, b) { return a + b; }, 0);
+    for (var i = 0; i < pool.length; i++) { r -= weights[i]; if (r < 0) return pool[i]; }
+    return pool[pool.length - 1];
+  }
+
   function newOrder() {
     var d = DIFF[$("difficulty").value];
     // Only items with a known price, so the order total adds up
@@ -400,7 +412,7 @@
     }
     var lines = [], n = Math.min(rand(d.lines[0], d.lines[1]), pool.length);
     while (lines.length < n) {
-      var it = bagOn() ? drawFromBag("practice", pool) : pick(pool);
+      var it = bagOn() ? drawFromBag("practice", pool) : pickCommon(pool);
       var line = { itemId: it.id, mods: randomMods(it, d.modChance), qty: Math.random() < 0.35 ? rand(2, d.qty) : 1 };
       var dup = lines.find(function (l) { return lineKey(l) === lineKey(line); });
       if (dup) dup.qty += line.qty; else lines.push(line);
