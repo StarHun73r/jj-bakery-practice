@@ -76,7 +76,7 @@ window.DISPLAY_CASES = [
     rows: [
       {
         name: "Not placed yet",
-        items: ["plain-chiffon", "hot-dog-bun", "danish-cream-cheese", "danish-hot-dog", "pine-buttermilk", "pineapple-bun", "wave-bread", "bacon-scone", "cupcake-4", "sponge-cake", "brown-mantou-1", "wheat-mantou-1", "milk-mantou-1", "korean-mochi-11", "golden-horn-5", "red-bean-mochi", "ham-bacon-cheese", "taro-buttermilk", "bbq-pork-bun", "cheese-hot-dog", "honey-carrot-toast","sun-cake-6", "sesame-crisp", "couple-cookie", "almond-cookie", "cat-tongue",
+        items: ["plain-chiffon", "hot-dog-bun", "danish-cream-cheese", "danish-hot-dog", "pine-buttermilk", "pineapple-bun", "wave-bread", "bacon-scone", "cupcake-4", "sponge-cake", "brown-mantou-1", "wheat-mantou-1", "milk-mantou-1", "korean-mochi-11", "golden-horn-5", "red-bean-mochi", "ham-bacon-cheese", "taro-buttermilk", "bbq-pork-bun", "cheese-hot-dog", "honey-carrot-toast", "hokkaido-toast", "coffee-walnut-toast", "black-sesame-toast", "raisin-toast", "french-walnut-toast", "wheat-toast-8", "white-toast-8", "curry-beef-pie", "chicken-pie", "raisin-bun","sun-cake-6", "sesame-crisp", "couple-cookie", "almond-cookie", "cat-tongue",
                 "choco-square", "walnut-square", "salted-yolk-cookie", "almond-brittle",
                 "wife-cake-6", "wife-cake-1", "sun-cake-1", "pineapple-cake-6", "pineapple-cake-1", "little-stone", "almond-puff",
                 "cranberry-qq-12", "cranberry-qq-1", "pork-floss", "honey-gift-box", "longan-honey"],
