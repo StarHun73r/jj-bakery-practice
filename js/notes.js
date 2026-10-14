@@ -89,4 +89,15 @@ window.ITEM_NOTES = {
   "ham-cheese-sand": "Cut side shows pink ham stripes and one orange cheese stripe in the middle.",
   "fried-egg-sand": "Cut side shows a messy yellow and white fried egg, with a pink ham stripe and green cucumber.",
   "tuna-sand": "Cut side shows a grey-brown tuna stripe, a yellow egg stripe and green cucumber.",
+
+  // ---- Steamed (new) and Taiwanese moon cake pastries ----
+  "veg-bao-1": "Plain white steamed bun with pleats twisted on top, no colored mark. Same look as the pork & vegetable bun; check the tag (素 = vegetarian).",
+  "veg-pork-bao-1": "Plain white pleated steamed bun, no colored mark. Looks like the vegetarian bun; tell them apart by the tag (菜肉 = vegetable & pork). The pink mark is BBQ pork.",
+  "tw-date-egg": "Shiny golden-brown egg-yolk pastry with NO sesame on top. Plain top = date; black sesame = red bean; white sesame = lotus.",
+  "tw-redbean-egg": "Shiny golden-brown egg-yolk pastry with black sesame seeds on top. Black sesame = red bean.",
+  "tw-lotus-egg": "Shiny golden-brown egg-yolk pastry with white sesame seeds on top. White sesame = lotus.",
+  "tw-mung-s": "Small pale flaky round pastry with a red JJ stamp in a circle.",
+  "tw-lava": "Pale flaky round pastry with a red flower stamp on top. Flower stamp = lava custard.",
+  "tw-veg-mung-l": "Big pale flaky mung bean pastry with a red 素 (vegetarian) stamp in a circle.",
+  "tw-mung-l": "Big pale flaky mung bean pastry with a red 小雅 stamp in an oval. Has pork inside, unlike the 素 one.",
 };

@@ -184,4 +184,13 @@ window.FULL_NAMES = {
   "8-choco-straw": "巧克力戚風夾草莓 8\" Choco Chiffon w/Strawberry Filling",
   "8-choco-coffee": "可可咖啡慕斯(8\") Choco Coffee Mousse (8\")",
   "strawberry-coconut": "草莓椰香 Strawberry Coconut",
+  "veg-bao-1": "素菜包 Vegetarian Steamed Bun",
+  "veg-pork-bao-1": "菜肉包 Pork&Vegetable Steamed Bun",
+  "tw-date-egg": "棗泥蛋黃酥 Date w/Egg Yolk Pastry",
+  "tw-redbean-egg": "豆沙蛋黃酥 Red Bean w/Egg Yolk Pastry",
+  "tw-mung-s": "綠豆小酥餅 Small Mung Bean Pastry",
+  "tw-lava": "流心奶黃酥 Lava Custard Pastry",
+  "tw-veg-mung-l": "素綠豆椪 Vegetarian Mung Bean Pastry",
+  "tw-mung-l": "綠豆椪 Mung Bean Pastry",
+  "tw-lotus-egg": "蓮蓉蛋黃酥 Lotus w/Egg Yolk Pastry",
 };

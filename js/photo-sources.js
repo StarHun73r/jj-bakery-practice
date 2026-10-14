@@ -177,4 +177,13 @@ window.PHOTO_SOURCES = {
   "8-choco-straw": "incoming/320-8-choco-straw.webp",
   "8-choco-coffee": "incoming/322-8-choco-coffee.webp",
   "strawberry-coconut": "incoming/328-strawberry-coconut.webp",
+  "veg-bao-1": "incoming/338-veg-bao-1.webp",
+  "veg-pork-bao-1": "incoming/340-veg-pork-bao-1.webp",
+  "tw-date-egg": "incoming/342-tw-date-egg.webp",
+  "tw-redbean-egg": "incoming/344-tw-redbean-egg.webp",
+  "tw-mung-s": "incoming/346-tw-mung-s.webp",
+  "tw-lava": "incoming/348-tw-lava.webp",
+  "tw-veg-mung-l": "incoming/350-tw-veg-mung-l.webp",
+  "tw-mung-l": "incoming/352-tw-mung-l.webp",
+  "tw-lotus-egg": "incoming/354-tw-lotus-egg.webp",
 };
