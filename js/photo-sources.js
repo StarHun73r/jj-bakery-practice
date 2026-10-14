@@ -158,4 +158,13 @@ window.PHOTO_SOURCES = {
   "fried-egg-sand": "incoming/277-fried-egg-sand.webp",
   "pigs-blanket-6": "incoming/279-pigs-blanket-6.webp",
   "ham-cheese-ball": "incoming/281-ham-cheese-ball.webp",
+  "red-bean-mochi-box": "incoming/284-red-bean-mochi-box.webp",
+  "slice-vanilla-straw": "incoming/286-slice-vanilla-straw.webp",
+  "jj-special-s": "incoming/288-jj-special-s.webp",
+  "corn-porksong": "incoming/290-corn-porksong.webp",
+  "seaweed-roll": "incoming/294-seaweed-roll.webp",
+  "coconut-bun": "incoming/296-coconut-bun.webp",
+  "portugal-tart-1": "incoming/298-portugal-tart-1.webp",
+  "matcha-croissant": "incoming/300-matcha-croissant.webp",
+  "meat-lovers": "incoming/302-meat-lovers.webp",
 };

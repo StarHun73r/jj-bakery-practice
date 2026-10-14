@@ -167,4 +167,11 @@ window.FULL_NAMES = {
   "fried-egg-sand": "荷包蛋三明治 Pan Fried Egg Sandwich",
   "pigs-blanket-6": "酥皮熱狗(x6) Pigs in a Blanket",
   "ham-cheese-ball": "火腿球(2入) Ham & Cheese Ball",
+  "jj-special-s": "羅宋麵包 J.J. Special Bread",
+  "corn-porksong": "玉米肉鬆 Corn Bun w/Pork Song",
+  "seaweed-roll": "海苔卷 Seaweed Roll",
+  "coconut-bun": "椰子麵包 Coconut Bun",
+  "portugal-tart-1": "葡式蛋塔 Portuguese Egg Tart",
+  "matcha-croissant": "抹茶杏仁可頌 Matcha Almond Croissant",
+  "meat-lovers": "多色麵包 Meat Lover's Bread",
 };

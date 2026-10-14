@@ -22,6 +22,13 @@ window.ITEM_NOTES = {
   "taro-buttermilk": "Round coiled bun with visible spiral layers (like a snail shell). Taro and butter-milk filling.",
   "raisin-bun": "Long segmented \"caterpillar\" (毛毛蟲) bun with raisins showing through the top.",
   "ham-cheese-ball": "Two small swirled rolls in one bag (2入). Bits of orange ham/cheese and green parsley show in the middle of each swirl.",
+  "coconut-bun": "Twisted, fanned-out golden bun with a few dark raisins peeking through; no topping on the outside. The white-coconut-covered one is the butter coconut bun, not this.",
+  "jj-special-s": "Flat, round, shiny golden bun scored with a few long slashes across the top, like a big plain cookie. Plain, no filling or topping (羅宋 = J.J. Special).",
+
+  // ---- Bread folder: savory / long breads (new) ----
+  "corn-porksong": "Flat bun covered edge to edge in yellow corn kernels baked on top. Pork floss is underneath. Lots of corn on top means this one.",
+  "seaweed-roll": "Rectangle wrapped in black seaweed (nori), with a strip of bread showing at each end. The only black, seaweed-wrapped bread.",
+  "meat-lovers": "Long bun with pink ham strips, green scallion, white mayo zigzags and brown pork floss all on top. 多色 = many colors.",
 
   // ---- Bread folder: savory / long breads ----
   "garlic-cheese-toast": "A thick slice of toast covered in melted cheese and green garlic-herb flecks. A slice, not a bun.",
@@ -53,7 +60,8 @@ window.ITEM_NOTES = {
   "danish-almond": "Flaky Danish covered in sliced almonds.",
   "danish-tuna": "Flaky Danish with an orange tuna and cheese topping and green parsley.",
   "danish-frosted": "Croissant with white sugar frosting drizzled over it and sliced almonds.",
-  "earl-grey-croissant": "Croissant with a white glaze dotted with dark Earl Grey tea specks.",
+  "matcha-croissant": "Croissant covered in pale green matcha cream with sliced almonds and powdered sugar. Green means matcha.",
+  "earl-grey-croissant":"Croissant with a white glaze dotted with dark Earl Grey tea specks.",
   "danish-ham-cheese": "Long flaky pastry with ham, melted cheese and green parsley on top.",
   "danish-hot-dog": "Flaky pastry wrapped around a hot dog, with white sesame on top.",
 
