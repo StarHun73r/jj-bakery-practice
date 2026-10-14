@@ -440,7 +440,7 @@
   // Settings that decide what an order can contain; a pre-made next order
   // is only used if these haven't changed since it was made.
   function orderSettings() {
-    return [$("deck").value, $("difficulty").value, $("photo-only").checked, bagOn()].join("|");
+    return [$("deck").value, $("difficulty").value, $("order-size").value, $("photo-only").checked, bagOn()].join("|");
   }
 
   function practicePool(quiet) {
@@ -459,12 +459,14 @@
   // Pick 1-10 items: mostly one of each, sometimes 2-4 of the same thing.
   function planOrder(quiet) {
     var d = DIFF[$("difficulty").value], pool = practicePool(quiet);
-    var left = pickSize(d.sizes), lines = [], tries = 0;
+    var fixed = $("order-size").value === "3";
+    var left = fixed ? 3 : pickSize(d.sizes), lines = [], tries = 0;
     while (left > 0 && tries++ < 50) {
       var it = bagOn() ? drawFromBag("practice", pool) : pickCommon(pool);
-      var qty = left >= 2 && Math.random() < 0.25 ? rand(2, Math.min(left, 4)) : 1;
+      var qty = !fixed && left >= 2 && Math.random() < 0.25 ? rand(2, Math.min(left, 4)) : 1;
       var line = { itemId: it.id, mods: randomMods(it, d.modChance), qty: qty };
       var dup = lines.find(function (l) { return lineKey(l) === lineKey(line); });
+      if (dup && fixed && pool.length >= 3) continue;   // 3-item mode: three different items
       if (dup) dup.qty += qty; else lines.push(line);
       left -= qty;
     }
@@ -491,6 +493,17 @@
       warmTimer = warmQueue.length ? setTimeout(step, 150) : null;
     })();
   }
+
+  // Items per customer: 1-10 (sized by difficulty) or always 3 different items, for easier
+  // training. Remembered in this browser; difficulty only matters for 1-10.
+  function applyOrderSize() { $("difficulty").disabled = $("order-size").value === "3"; }
+  try { if (localStorage.getItem("jj-order-size") === "3") $("order-size").value = "3"; } catch (e) {}
+  applyOrderSize();
+  $("order-size").onchange = function () {
+    try { localStorage.setItem("jj-order-size", this.value); } catch (e) {}
+    applyOrderSize();
+    if (state.mode === "practice") newOrder();
+  };
 
   function newOrder() {
     var plan = state.nextOrder && state.nextOrder.settings === orderSettings() ? state.nextOrder : planOrder(false);

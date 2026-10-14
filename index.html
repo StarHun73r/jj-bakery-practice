@@ -59,7 +59,11 @@
       <span class="muted" id="publish-status"></span>
     </div>
     <div class="trainer-tools practice-only">
-      <select id="difficulty">
+      <select id="order-size" aria-label="Items per customer" title="How many items each customer buys">
+        <option value="random">1-10 items</option>
+        <option value="3">3 items</option>
+      </select>
+      <select id="difficulty" title="Easy: mostly small orders. Hard: mostly bigger orders.">
         <option value="easy">Easy</option>
         <option value="medium" selected>Medium</option>
         <option value="hard">Hard</option>
@@ -335,6 +339,6 @@
   <script src="js/full-names.js?v=898ceee8"></script>
   <script src="js/display-cases.js?v=c91b8c8c"></script>
   <script src="js/notes.js?v=48db5188"></script>
-  <script src="js/app.js?v=14909894"></script>
+  <script src="js/app.js?v=7db2e14e"></script>
 </body>
 </html>
