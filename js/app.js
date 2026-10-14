@@ -399,11 +399,18 @@
   //  Practice mode
   // ------------------------------------------------------------------
   var NAMES = ["Amy", "Kevin", "Grace", "Daniel", "Linda", "Jason", "Michelle", "Eric", "Vivian", "Tony", "Helen", "Brian", "Cindy", "Mr. Chen", "Mrs. Wang", "Ms. Lee", "Auntie Lin", "Mr. Huang"];
+  // A customer buys 1-10 items in all. sizes[k] is how likely k+1 items is:
+  // small orders are the most common, big ones rarer; harder levels lean bigger.
   var DIFF = {
-    easy:   { lines: [1, 2], qty: 2, modChance: 0 },
-    medium: { lines: [2, 3], qty: 3, modChance: 0.4 },
-    hard:   { lines: [3, 5], qty: 5, modChance: 0.7 },
+    easy:   { sizes: [20, 22, 18, 12, 9, 7, 5, 3, 2, 2],   modChance: 0 },
+    medium: { sizes: [12, 16, 16, 14, 11, 9, 8, 6, 4, 4],  modChance: 0.4 },
+    hard:   { sizes: [6, 9, 12, 13, 13, 12, 11, 9, 8, 7],  modChance: 0.7 },
   };
+  function pickSize(weights) {
+    var r = Math.random() * weights.reduce(function (a, b) { return a + b; }, 0);
+    for (var i = 0; i < weights.length; i++) { r -= weights[i]; if (r < 0) return i + 1; }
+    return weights.length;
+  }
 
   function randomMods(it, chance) {
     var mods = [];
@@ -430,26 +437,71 @@
     return pool[pool.length - 1];
   }
 
-  function newOrder() {
-    var d = DIFF[$("difficulty").value];
+  // Settings that decide what an order can contain; a pre-made next order
+  // is only used if these haven't changed since it was made.
+  function orderSettings() {
+    return [$("deck").value, $("difficulty").value, $("photo-only").checked, bagOn()].join("|");
+  }
+
+  function practicePool(quiet) {
     // Only items with a known price, so the order total adds up
     var pool = deckItems().filter(function (i) { return i.price > 0; });
-    if (!pool.length) { toast("No prices in this deck yet — using all items"); pool = deckItems(); }
+    if (!pool.length) { if (!quiet) toast("No prices in this deck yet — using all items"); pool = deckItems(); }
     // "Photos only" quizzes on the items you've added photos for.
     if ($("photo-only").checked) {
       var withPhotos = pool.filter(function (i) { return PHOTOS[i.id]; });
       if (withPhotos.length) pool = withPhotos;
-      else toast("No photos yet — add some in Photos mode");
+      else if (!quiet) toast("No photos yet — add some in Photos mode");
     }
-    var lines = [], n = Math.min(rand(d.lines[0], d.lines[1]), pool.length);
-    while (lines.length < n) {
+    return pool;
+  }
+
+  // Pick 1-10 items: mostly one of each, sometimes 2-4 of the same thing.
+  function planOrder(quiet) {
+    var d = DIFF[$("difficulty").value], pool = practicePool(quiet);
+    var left = pickSize(d.sizes), lines = [], tries = 0;
+    while (left > 0 && tries++ < 50) {
       var it = bagOn() ? drawFromBag("practice", pool) : pickCommon(pool);
-      var line = { itemId: it.id, mods: randomMods(it, d.modChance), qty: Math.random() < 0.35 ? rand(2, d.qty) : 1 };
+      var qty = left >= 2 && Math.random() < 0.25 ? rand(2, Math.min(left, 4)) : 1;
+      var line = { itemId: it.id, mods: randomMods(it, d.modChance), qty: qty };
       var dup = lines.find(function (l) { return lineKey(l) === lineKey(line); });
-      if (dup) dup.qty += line.qty; else lines.push(line);
-      if (dup) n--; // keep the loop finite when the pool is small
+      if (dup) dup.qty += qty; else lines.push(line);
+      left -= qty;
     }
-    startOrder(pick(NAMES), lines, pick(CFG.cardTypes));
+    return { customer: pick(NAMES), lines: lines, card: pick(CFG.cardTypes), settings: orderSettings() };
+  }
+
+  // Photos load ahead of time so a new customer shows up with no wait:
+  // the next order is made while you ring up this one, and its photos (then
+  // the rest of the deck's, a few at a time) are fetched in the background.
+  var photoCache = {};
+  function warmPhoto(id) {
+    if (!PHOTOS[id] || photoCache[id]) return;
+    var img = new Image();
+    img.decoding = "async";
+    img.src = PHOTOS[id];
+    photoCache[id] = img;
+  }
+  var warmQueue = [], warmTimer = null;
+  function warmDeck() {
+    warmQueue = practicePool(true).map(function (it) { return it.id; }).filter(function (id) { return !photoCache[id]; });
+    if (warmTimer) return;
+    (function step() {
+      warmQueue.splice(0, 4).forEach(warmPhoto);
+      warmTimer = warmQueue.length ? setTimeout(step, 150) : null;
+    })();
+  }
+
+  function newOrder() {
+    var plan = state.nextOrder && state.nextOrder.settings === orderSettings() ? state.nextOrder : planOrder(false);
+    state.nextOrder = null;
+    startOrder(plan.customer, plan.lines, plan.card);
+    setTimeout(function () {
+      if (state.mode !== "practice") return;
+      state.nextOrder = planOrder(true);
+      state.nextOrder.lines.forEach(function (l) { warmPhoto(l.itemId); });
+      warmDeck();
+    }, 0);
   }
 
   // Begin (or redo) a practice order with a clean ticket and fresh score.
@@ -483,6 +535,12 @@
   }
 
   function loadPhoto(it, box) {
+    var ready = photoCache[it.id];
+    if (ready && ready.complete && ready.naturalWidth) {
+      // already downloaded and decoded: a copy shows instantly
+      box.querySelector(".ph").replaceWith(ready.cloneNode());
+      return;
+    }
     if (PHOTOS[it.id]) {
       var saved = new Image();
       saved.src = PHOTOS[it.id];
@@ -501,7 +559,8 @@
 
   function renderCustomer() {
     var p = state.practice;
-    $("cust-name").textContent = p.customer + " would like:";
+    var count = p.lines.reduce(function (a, l) { return a + l.qty; }, 0);
+    $("cust-name").textContent = p.customer + " would like " + count + " item" + (count > 1 ? "s" : "") + ":";
     $("cust-pay").textContent = "Paying with " + p.card;
     var photoOnly = $("photo-only").checked;
     var box = $("cust-lines");

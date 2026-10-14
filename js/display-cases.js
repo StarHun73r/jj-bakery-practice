@@ -68,6 +68,74 @@ window.DISPLAY_CASES = [
     ],
   },
   {
+    id: "cookie",
+    name: "Cookie shelves",
+    note: "Two-section shelf of boxed cookies against the wall",
+    photo: "incoming/329-case-cookie.webp",
+    rows: [
+      {
+        name: "Top shelf (left section; the right section has honey, gift boxes and pork floss jars)",
+        items: ["sun-cake-6", "sun-cake-1", "wife-cake-1", "wife-cake-6"],
+      },
+      {
+        name: "Middle shelf",
+        items: ["sesame-crisp", "couple-cookie", "salted-yolk-cookie", "almond-brittle"],
+      },
+      {
+        name: "Bottom shelf",
+        items: ["cat-tongue", "almond-cookie", "choco-square", "walnut-square"],
+      },
+    ],
+  },
+  {
+    id: "pastry",
+    name: "Pastry shelf",
+    note: "Small glass shelf by the window",
+    photo: "incoming/330-case-pastry.webp",
+    rows: [
+      {
+        name: "Top shelf",
+        items: ["pineapple-cake-6", "pineapple-cake-1"],
+      },
+      {
+        name: "Middle shelf",
+        items: ["little-stone", "almond-puff"],
+      },
+      {
+        name: "Bottom shelf",
+        items: ["cranberry-qq-12", "cranberry-qq-1"],
+      },
+    ],
+  },
+  {
+    id: "freezer",
+    name: "Freezer",
+    note: "\"Freezer Ready\" upright freezer (冷凍即食品)",
+    photo: "incoming/331-case-freezer.webp",
+    rows: [
+      {
+        name: "Top shelf",
+        items: ["zongzi"],
+      },
+      {
+        name: "Second shelf",
+        items: ["bamboo-shoot", "pickled-tuber-pork", "salted-mustard-pork"],
+      },
+      {
+        name: "Third shelf",
+        items: ["spicy-stinky-tofu", "fried-soy-sauce", "smoked-duck-box", "spicy-pig-ear"],
+      },
+      {
+        name: "Fourth shelf",
+        items: ["lotus-seed-soup", "four-spirits-soup", "pineapple-rib-soup"],
+      },
+      {
+        name: "Bottom shelf (other two tags unreadable in the photo)",
+        items: ["lamb-soup"],
+      },
+    ],
+  },
+  {
     // Items whose case/spot isn't confirmed yet. Move them into a real
     // case once there's an overview photo of where they sit.
     id: "misc",
@@ -76,10 +144,10 @@ window.DISPLAY_CASES = [
     rows: [
       {
         name: "Not placed yet",
-        items: ["plain-chiffon", "hot-dog-bun", "danish-cream-cheese", "danish-hot-dog", "pine-buttermilk", "pineapple-bun", "wave-bread", "bacon-scone", "cupcake-4", "sponge-cake", "brown-mantou-1", "wheat-mantou-1", "milk-mantou-1", "korean-mochi-11", "golden-horn-5", "red-bean-mochi", "ham-bacon-cheese", "taro-buttermilk", "bbq-pork-bun", "cheese-hot-dog", "honey-carrot-toast", "hokkaido-toast", "coffee-walnut-toast", "black-sesame-toast", "raisin-toast", "french-walnut-toast", "wheat-toast-8", "white-toast-8", "curry-beef-pie", "chicken-pie", "raisin-bun", "red-bean-bun", "custard-bun", "day-old-3", "garlic-cheese-toast", "danish-frosted", "earl-grey-croissant", "danish-ham-cheese", "danish-almond", "danish-tuna", "soft-red-bean", "euro-walnut", "sweet-sesame-cake", "peanut-bun", "parmesan", "walnut-wheat", "buttermilk-puff", "porksong-puff", "butter-coconut", "brown-sugar-walnut", "sesame-bun", "taro-bun", "porksong-bun", "cranberry-cheese", "pine-bun-coconut", "pine-bun-peanut", "8-fruit-festival", "8-black-forest", "8-strawberry-creme", "8-tiramisu", "8-coffee-fruit", "8-coffee-straw", "8-mango-mousse", "bamboo-shoot", "pickled-tuber-pork", "salted-mustard-pork", "fried-soy-sauce", "spicy-stinky-tofu", "lotus-seed-soup", "four-spirits-soup", "pineapple-rib-soup", "ham-cheese-sand", "tuna-sand", "fried-egg-sand", "pigs-blanket-6", "ham-cheese-ball", "red-bean-mochi-box", "jj-special-s", "corn-porksong", "seaweed-roll", "coconut-bun", "portugal-tart-1", "matcha-croissant", "meat-lovers","sun-cake-6", "sesame-crisp", "couple-cookie", "almond-cookie", "cat-tongue",
-                "choco-square", "walnut-square", "salted-yolk-cookie", "almond-brittle",
-                "wife-cake-6", "wife-cake-1", "sun-cake-1", "pineapple-cake-6", "pineapple-cake-1", "little-stone", "almond-puff",
-                "cranberry-qq-12", "cranberry-qq-1", "pork-floss", "honey-gift-box", "longan-honey"],
+        items: ["plain-chiffon", "hot-dog-bun", "danish-cream-cheese", "danish-hot-dog", "pine-buttermilk", "pineapple-bun", "wave-bread", "bacon-scone", "cupcake-4", "sponge-cake", "brown-mantou-1", "wheat-mantou-1", "milk-mantou-1", "korean-mochi-11", "golden-horn-5", "red-bean-mochi", "ham-bacon-cheese", "taro-buttermilk", "bbq-pork-bun", "cheese-hot-dog", "honey-carrot-toast", "hokkaido-toast", "coffee-walnut-toast", "black-sesame-toast", "raisin-toast", "french-walnut-toast", "wheat-toast-8", "white-toast-8", "curry-beef-pie", "chicken-pie", "raisin-bun", "red-bean-bun", "custard-bun", "day-old-3", "garlic-cheese-toast", "danish-frosted", "earl-grey-croissant", "danish-ham-cheese", "danish-almond", "danish-tuna", "soft-red-bean", "euro-walnut", "sweet-sesame-cake", "peanut-bun", "parmesan", "walnut-wheat", "buttermilk-puff", "porksong-puff", "butter-coconut", "brown-sugar-walnut", "sesame-bun", "taro-bun", "porksong-bun", "cranberry-cheese", "pine-bun-coconut", "pine-bun-peanut", "8-fruit-festival", "8-black-forest", "8-strawberry-creme", "8-tiramisu", "8-coffee-fruit", "8-coffee-straw", "8-mango-mousse", "ham-cheese-sand", "tuna-sand", "fried-egg-sand", "pigs-blanket-6", "ham-cheese-ball", "strawberry-coconut", "daikon-pastry", "satay-porksong", "scallion-bun", "coffee-triangle", "8-taro-pudding", "8-vanilla-fruit", "8-choco-straw", "8-choco-coffee", "red-bean-mochi-box", "jj-special-s", "corn-porksong", "seaweed-roll", "coconut-bun", "portugal-tart-1", "matcha-croissant", "meat-lovers",    
+                   
+                      
+                  "pork-floss", "honey-gift-box", "longan-honey"],
       },
     ],
   },

@@ -28,6 +28,9 @@ window.ITEM_NOTES = {
   // ---- Bread folder: savory / long breads (new) ----
   "corn-porksong": "Flat bun covered edge to edge in yellow corn kernels baked on top. Pork floss is underneath. Lots of corn on top means this one.",
   "seaweed-roll": "Rectangle wrapped in black seaweed (nori), with a strip of bread showing at each end. The only black, seaweed-wrapped bread.",
+  "satay-porksong": "Square of four bumpy buns joined together, topped with brown pork floss, green onion and white mayo. Like the meat lover's but square, with no pink ham strips.",
+  "scallion-bun": "Long twisted bun piled with lots of dark-green chopped scallion; no ham or pork floss. All green on top means scallion bun.",
+  "strawberry-coconut": "Soft golden bun split open with red strawberry jam inside and white coconut flakes along the jam. Red and white stripe through the middle.",
   "meat-lovers": "Long bun with pink ham strips, green scallion, white mayo zigzags and brown pork floss all on top. 多色 = many colors.",
 
   // ---- Bread folder: savory / long breads ----
@@ -44,7 +47,7 @@ window.ITEM_NOTES = {
   // ---- Bread folder: rustic / wheat breads ----
   "walnut-wheat": "Oval brownish wheat loaf with slashes on top and walnut pieces showing. Lighter brown than the brown sugar one.",
   "brown-sugar-walnut": "Dark brown oval loaf with slashes. Much darker color (brown sugar and cocoa) than the wheat walnut.",
-  "cranberry-cheese": "Oval multigrain loaf with a long slit on top where the cream cheese and cranberries show.",
+  "cranberry-cheese": "Oval multigrain bun with slits on top and dark-red cranberries showing through the crust and slits. Cream cheese inside.",
   "euro-walnut": "Big flat round golden loaf with walnut pieces poking through the top.",
   "wave-bread": "Large rectangular loaf with a bumpy \"wave\" top and the JJ logo stamped in the middle.",
 

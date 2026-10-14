@@ -29,7 +29,7 @@ window.MENU_CONFIG = {
   cardTypes: ["Visa", "Mastercard", "Discover", "Amex"],   // 3rd one is a guess
 };
 
-var BLUE = "#1d9bd7", ORANGE = "#f57b26", RED = "#e8394f", INDIGO = "#3c55b9", YELLOW = "#f6b40e", PURPLE = "#9b6fd4";
+var BLUE = "#1d9bd7", ORANGE = "#f57b26", RED = "#e8394f", INDIGO = "#3c55b9", YELLOW = "#f6b40e", PURPLE = "#9b6fd4", GREEN = "#7cc242";
 
 // Submenu option groups (size, sugar, ...) — none seen yet.
 window.MODIFIER_GROUPS = {};
@@ -69,7 +69,7 @@ window.MENU_TREE = [
       I("buttermilk-puff",     "起酥奶酥 Buttermilk B.w/Puff...", 2.50),
       I("hot-dog-bun",         "熱狗麵包 Hot Dog Bun", 2.55),
       // page 2 (swipe left)
-      I("satay-porksong",      "沙茶肉鬆 Satay PorkSon...", 0),
+      I("satay-porksong",      "沙茶肉鬆 Satay PorkSon...", 2.55),
       I("curry-beef-pie",      "咖哩牛派Curry Beef Pie", 2.55),
       I("chicken-pie",         "雞肉派 Chicken Pie", 2.55),
       I("jj-special-s",        "羅宋麵包 (S)J.J. Special...", 2.55),
@@ -78,7 +78,7 @@ window.MENU_TREE = [
       I("cheese-hot-dog",      "起司熱狗 Cheese Hot Dog", 2.65),
       I("walnut-wheat",        "德式核果 Wheat B. w/Walnut", 2.65),
       I("brown-sugar-walnut",  "紅糖核桃 Brown Sugar Br...", 2.65),
-      I("scallion-bun",        "蔥花麵包 Scallion Bun", 0),
+      I("scallion-bun",        "蔥花麵包 Scallion Bun", 2.70),
       I("seaweed-roll",        "海苔卷 Seaweed Roll", 3.00),
       I("cranberry-cheese",    "蔓越莓乳酪 Cranberr...", 3.00),
       I("euro-walnut",         "北歐堅果 Euro Walnut", 3.00),
@@ -91,7 +91,7 @@ window.MENU_TREE = [
       I("korean-mochi-11",     "韓式烤麻糬 (x11) Korean S...", 8.95),
       I("sea-salt-4",          "海鹽麵包 (x4)Sea Salt Butt...", 0),
       I("egg-salad-bun",       "蛋沙拉麵包 Egg Salad Bun", 0),
-      I("strawberry-coconut",  "草莓椰香 Strawberry Coconut", 0),
+      I("strawberry-coconut",  "草莓椰香 Strawberry Coconut", 3.00),
       I("pigs-blanket-6",      "酥皮熱狗 (x6) Pigs in a Blan...", 3.60),
       I("bacon-scone",         "培根香蔥司康 Bacon S...", 4.99),
     ]),
@@ -168,7 +168,7 @@ window.MENU_TREE = [
       I("sun-cake-1",          "太陽餅(x1)Maltose Pastry", 2.55),
       I("wife-cake-1",         "老婆餅(x1)Wife Pastry", 2.55),
       I("almond-puff",         "大起酥杏仁片 lmond...", 2.80),          // first letter hidden by glare
-      I("daikon-pastry",       "蘿蔔絲餅 Daikon Pastry", 0),
+      I("daikon-pastry",       "蘿蔔絲餅 Daikon Pastry", 3.85),
       I("little-stone",        "小石頭 Little Stone", 5.60),
       // row 3
       I("milky-stick",         "特製牛奶棒Special Milky Sti...", 0),
@@ -199,7 +199,7 @@ window.MENU_TREE = [
       I("hokkaido-chiffon-1",  "北海道戚風蛋糕(x1)Hokk...", 0),
       I("cream-puff-1",        "泡芙(x1)Cream Puff", 0),
       I("hokkaido-chiffon-2",  "北海道戚風蛋糕(x2)Hok...", 4.00),
-      I("coffee-triangle",     "咖啡三角蛋糕 Triangle...", 0),
+      I("coffee-triangle",     "咖啡三角蛋糕 Triangle...", 2.15),
       I("choco-triangle",      "巧克力三角蛋糕 Triangle...", 2.15),
       I("vanilla-triangle",    "香草三角蛋糕 Triangle...", 0),
       I("sponge-cake",         "海棉蛋糕 Sponge Cake", 2.55),
@@ -281,22 +281,22 @@ window.MENU_TREE = [
       I("8-coffee-cream",      '8"咖啡戚風夾奶油Coffee C...', 0),
       I("8-check-choco",       '8"格子巧克力 Chocola...', 0),
       I("8-choco-cherry",      '8"巧克力櫻桃 Choco....', 0),
-      I("8-vanilla-fruit",     '8"香草戚風夾綜合水果Vani...', 0),
+      I("8-vanilla-fruit",     '8"香草戚風夾綜合水果Vani...', 31.60),
       I("8-choco-fruit",       '8"巧克力戚風夾綜合水果C...', 0),
       I("8-coffee-fruit",      '8"咖啡戚風夾綜合水果Coff...', 31.60),
       I("8-ny-cheese",         '8"紐約起司蛋糕N.Y. Cheese...', 0),
       I("8-taro",              '8"芋頭蛋糕Vanilla Chiffon...', 0),
       I("8-vanilla-straw",     '8"香草戚風夾草莓Vanilla C...', 0),
-      I("8-choco-straw",       '8"巧克力戚風夾草莓Choco...', 0),
+      I("8-choco-straw",       '8"巧克力戚風夾草莓Choco...', 33.65),
       I("8-coffee-straw",      '8"咖啡戚風夾草莓Coffee C...', 33.65),
       I("8-choco-symphony",    '8"巧克力交響曲 Chocola...', 0),
       I("8-mango-mousse",      '8"芒果慕斯Mango Mousse', 38.75),
       I("8-fruit-festival",    '8"水果嘉年華Fruit Festival...', 38.75),
       I("8-tiramisu",          '8"提拉米蘇 (法式)Tiram...', 38.75),
-      I("8-choco-coffee",      '8"可可咖啡慕斯 Choco C...', 0),
+      I("8-choco-coffee",      '8"可可咖啡慕斯 Choco C...', 38.75),
       I("8-strawberry-creme",  '8"草莓奶酪 Strawbe...', 38.75),
       I("8-black-forest",      '8"黑琳 Chocolate Chocolate', 39.80),
-      I("8-taro-pudding",      '8"相思芋頭布丁 Vanilla C...', 0),
+      I("8-taro-pudding",      '8"相思芋頭布丁 Vanilla C...', 39.80),
       I("8-add-pudding",       '8"加布丁 + Pudding', 0),
       I("8-fully-topping",     '8"舖滿水果Fully Topping', 0),
     ]),
@@ -345,7 +345,7 @@ window.MENU_TREE = [
 
   F("冷凍食品 Frozen Food", BLUE, [
     F("冷凍食品Frozen Food", [
-      I("zongzi",              "冷凍香菇蛋黃肉粽 Chinese...", 0),
+      I("zongzi",              "冷凍香菇蛋黃肉粽 Chinese...", 5.75),
       I("bamboo-shoot",        "滷筍乾 Bamboo shoot", 6.10),
       I("pickled-mustard",     "酸菜(盒)Pickled Mustar...", 7.65),
       I("salted-mustard-pork", "冷凍雪菜肉絲 Salted M...", 0),
@@ -367,7 +367,55 @@ window.MENU_TREE = [
       I("lotus-seed-soup",     "蓮子銀耳湯Sweet lotus se...", 12.25),
     ]),
   ]),
-  F("中秋節月餅 Moon Cakes", ORANGE, []),
+  F("中秋節月餅 Moon Cakes", ORANGE, [
+    // from register photos (incoming/ref/333-336), 2026-10-13. Prices not known yet.
+    F("廣式Canton", BLUE, [
+      I("mc-lotus-s-0",     "蓮蓉小月(無) Lotus Small", 0, { color: GREEN }),
+      I("mc-lotus-s-1",     "蓮蓉小月(單) Lotus Small w/...", 0, { color: GREEN }),
+      I("mc-lotus-l-0",     "蓮蓉大月(無) Lotus Big", 0, { color: GREEN }),
+      I("mc-lotus-l-1",     "蓮蓉大月(單) Lotus Big w/egg", 0, { color: GREEN }),
+      I("mc-lotus-l-2",     "蓮蓉大月(雙) Lotus w/2e...", 0, { color: GREEN }),   // a word before "w/2e..." hidden by glare
+      I("mc-redbean-s-0",   "豆沙小月(無) Red Bean Sm...", 0, { color: PURPLE }),
+      I("mc-redbean-s-1",   "豆沙小月(單) Red Bean Sm...", 0, { color: PURPLE }),
+      I("mc-redbean-l-0",   "豆沙大月(無) Red Bean Big", 0, { color: PURPLE }),
+      I("mc-redbean-l-1",   "豆沙大月(單) Red Bean Big...", 0, { color: PURPLE }),
+      I("mc-redbean-l-2",   "豆沙大月(雙) Red Bean Big...", 0, { color: PURPLE }),
+      I("mc-date-s-0",      "棗泥小月(無) Date Small", 0),
+      I("mc-date-s-1",      "棗泥小月(單) Date Small w/...", 0),
+      I("mc-date-l-0",      "棗泥大月(無) Date Big", 0),
+      I("mc-date-l-1",      "棗泥大月(單) Date Big w/egg", 0),
+      I("mc-date-l-2",      "棗泥大月(雙) Date Big w/2e...", 0),
+      I("mc-pine-s-0",      "鳳梨小月(無) Pineappl...", 0),
+      I("mc-pine-s-1",      "鳳梨小月(單) Pineappl...", 0),
+      I("mc-pine-l-0",      "鳳梨大月(無) Pineappl...", 0),
+      I("mc-pine-l-1",      "鳳梨大月(單) Pineappl...", 0),
+      I("mc-pine-l-2",      "鳳梨大月(雙) Pineappl...", 0),
+      I("mc-lava-s-1",      "流心奶黃小月餅(x1) Lava Cu...", 0),
+    ]),
+    F("台式Taiwanese", ORANGE, [
+      I("tw-mung-l",        "綠豆椪(大)(Big)Mung Bean...", 0, { color: BLUE }),
+      I("tw-veg-mung-l",    "素綠豆椪(大)(Big)Mu...", 0, { color: BLUE }),
+      I("tw-mung-s",        "綠豆小酥(小)(Small)...", 0, { color: BLUE }),
+      I("tw-lotus-egg",     "蓮黃酥Lotus w/egg", 0, { color: BLUE }),          // 2nd-3rd characters hidden by glare
+      I("tw-redbean-egg",   "豆沙蛋黃酥Red Bean w/...", 0, { color: BLUE }),
+      I("tw-date-egg",      "棗泥蛋黃酥Date w/ egg", 0, { color: BLUE }),
+      I("tw-redbean",       "豆沙酥 Red Bean", 0, { color: BLUE }),
+      I("tw-lotus",         "蓮蓉酥 Lotus", 0, { color: BLUE }),
+      I("tw-date",          "棗泥酥Date", 0, { color: BLUE }),
+      I("tw-lava",          "流心奶黃酥Lava Custard...", 0, { color: BLUE }),
+    ]),
+    F("超值禮盒Value Gift Set", BLUE, [
+      I("gift-lava-4",      "4入流心奶黃小月餅禮盒(Box...", 0),
+      I("gift-lava-8",      "8入流心奶黃小月餅禮盒(Box...", 0),
+      I("gift-4l",          "4大月餅禮盒(4L) Moon C...", 0),
+      I("gift-9s",          "9小月餅禮盒(9S) Moon C...", 0),
+      I("gift-8l",          "8大月餅禮盒(8L) Moon C...", 0),
+      I("gift-4l6s",        "4大6小月餅禮盒(4L6S)...", 0),
+      I("gift-15s",         "15小月餅禮盒(15S) Moon C...", 0),
+      I("gift-mung-pine",   "綠豆椪/鳳梨酥禮盒包裝附...", 0),
+      I("moon-delivery",    "中秋節運費 Moon Delivery", 0, { practice: false }),
+    ]),
+  ]),
   F("W-蛋糕&慕斯Cake&M...", RED, []),
   F("W-餅乾&甜點Cookie&...", RED, []),
   F("W-麵包Bread", RED, []),
