@@ -178,9 +178,16 @@
     var cs = getComputedStyle(stage), gap = 12;
     var w = stage.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
     var h = stage.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    [].forEach.call(stage.querySelectorAll(":scope > .customer"), function (el) { el.style.height = ""; });
     var side = [].filter.call(stage.children, function (el) { return el !== ipad && getComputedStyle(el).display !== "none"; })[0];
     if (side) {
-      if (document.body.classList.contains("cust-bottom") && side.classList.contains("customer")) h -= Math.min(side.scrollHeight, h * 0.42) + gap;
+      if (document.body.classList.contains("cust-bottom") && side.classList.contains("customer")) {
+        // A fixed strip for the order card along the bottom, sized from the window only,
+        // so the iPad never moves or grows into the toolbar as the card's contents change.
+        var strip = Math.round(Math.max(170, Math.min(250, h * 0.26)));
+        side.style.height = strip + "px";
+        h -= strip + gap;
+      }
       else w -= side.offsetWidth + gap;
     }
     var width = Math.min(w, h * IPAD_RATIO), height = width / IPAD_RATIO;
