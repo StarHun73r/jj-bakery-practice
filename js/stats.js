@@ -45,13 +45,13 @@
   function save(id, s) { try { localStorage.setItem(key(id), JSON.stringify(s)); } catch (e) {} }
   function today(t) { var d = new Date(t || Date.now()); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
 
-  function update(fn) {
+  function update(fn, timeOnly) {
     if (!JJ.user) return;
     var s = load(JJ.user.id);
     fn(s);
     s.last = Date.now();
     save(JJ.user.id, s);
-    sync.changed(JJ.user.id);
+    if (timeOnly) sync.timeMoved(JJ.user.id); else sync.changed(JJ.user.id);
   }
   function itemMark(s, id, kind) {
     var it = s.items[id] || (s.items[id] = { r: 0, h: 0, s: 0, w: 0 });
@@ -113,7 +113,7 @@
       if (m) { s.time.modes = s.time.modes || {}; s.time.modes[m] = (s.time.modes[m] || 0) + TICK; }
       var d = today();
       s.time.days[d] = (s.time.days[d] || 0) + TICK;
-    });
+    }, true);   // time only: goes up with the next answer or when the page is left
   }, TICK * 1000);
 
   // ------------------------------------------------------------------
@@ -177,33 +177,50 @@
                  summary: { minutes: Math.round(s.time.total / 60), right: t.pct(t.right), wrong: t.pct(t.wrong), orders: s.practice.orders } };
       }) });
     }
-    // send every person changed on this device; text/plain avoids a CORS preflight
-    function push(beacon) {
-      var ids = Object.keys(dirty);
+    // Keeping uploads small: dirty[id] is "a" after an answer (sent within 2 minutes) or
+    // "t" when only the active time moved (sent when the page is hidden or closed, or with
+    // the next answer). A fingerprint of what was last sent stops identical re-sends,
+    // e.g. after a refresh with nothing new.
+    var sent = {};
+    try { sent = JSON.parse(localStorage.getItem("jj-sync-sent")) || {}; } catch (e) {}
+    function fingerprint(id) {
+      var t = "", h = 5381;
+      try { t = localStorage.getItem(key(id)) || ""; } catch (e) {}
+      for (var i = 0; i < t.length; i++) h = (h * 33 + t.charCodeAt(i)) | 0;
+      return t.length + ":" + h;
+    }
+    // send people changed on this device; text/plain avoids a CORS preflight
+    function push(beacon, withTime) {
+      var ids = Object.keys(dirty).filter(function (id) { return withTime || dirty[id] === "a"; })
+        .filter(function (id) { return sent[id] !== fingerprint(id); });
+      Object.keys(dirty).forEach(function (id) { if (withTime || dirty[id] === "a") delete dirty[id]; });
+      keep();
       if (!on || !ids.length) return Promise.resolve();
       var data = body(ids);
-      dirty = {}; keep();
+      ids.forEach(function (id) { sent[id] = fingerprint(id); });
+      try { localStorage.setItem("jj-sync-sent", JSON.stringify(sent)); } catch (e) {}
       if (beacon && navigator.sendBeacon) { navigator.sendBeacon(CFG.url, new Blob([data], { type: "text/plain" })); return Promise.resolve(); }
       return fetch(CFG.url, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: data })
         .then(function () { status = "ok"; })
-        .catch(function () { ids.forEach(function (id) { dirty[id] = 1; }); keep(); status = "offline"; });
+        .catch(function () { ids.forEach(function (id) { dirty[id] = "a"; delete sent[id]; }); keep(); status = "offline"; });
     }
-    setInterval(function () { push(false); }, 30000);
-    document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") push(true); });
-    window.addEventListener("pagehide", function () { push(true); });
+    setInterval(function () { push(false, false); }, 2 * 60000);
+    document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") push(true, true); });
+    window.addEventListener("pagehide", function () { push(true, true); });
     // every page load (and refresh) sends everything this device has, so the Sheet is current
     function pushAll() {
       if (!on) return Promise.resolve();
-      try { Object.keys(localStorage).forEach(function (k) { var m = /^jj-ustats:(.+)$/.exec(k); if (m) dirty[m[1]] = 1; }); } catch (e) {}
+      try { Object.keys(localStorage).forEach(function (k) { var m = /^jj-ustats:(.+)$/.exec(k); if (m && !dirty[m[1]]) dirty[m[1]] = "t"; }); } catch (e) {}
       keep();
-      return push(false);
+      return push(false, true);   // only what changed since the last send
     }
     setTimeout(pushAll, 1500);
 
     return {
       on: on, device: device,
       status: function () { return !on ? "off" : status || "waiting"; },
-      changed: function (id) { dirty[id] = 1; keep(); },
+      changed: function (id) { dirty[id] = "a"; keep(); },
+      timeMoved: function (id) { if (!dirty[id]) { dirty[id] = "t"; keep(); } },
       pull: pull, push: push, pushAll: pushAll,
       others: function (id) { return (remote[id] || []).filter(function (r) { return r.device !== device && r.device !== "reset"; }); },
       ids: function () { return Object.keys(remote).filter(function (id) { return remote[id].some(function (r) { return r.device !== "reset"; }); }); },
@@ -673,7 +690,7 @@
     state.mode = mode;
     if (mode === "stats") renderStatsPage();
     if (mode === "admin") renderAdmin();
-    if (mode === "stats" || mode === "admin") sync.push(false).then(function () { return sync.pull(true); }).then(function () {
+    if (mode === "stats" || mode === "admin") sync.push(false, true).then(function () { return sync.pull(true); }).then(function () {
       if (state.mode === "stats") renderStatsPage();
       if (state.mode === "admin") renderAdmin();
     });
