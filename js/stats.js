@@ -29,7 +29,7 @@
       time: { total: 0, days: {} },
       practice: { orders: 0, perfect: 0, helped: 0, wrongOrders: 0, wrongChecks: 0, wrongCard: 0,
                   gaveUp: 0, hints: 0, time: 0, items: 0, streak: 0, best: 0 },
-      drill: { found: 0, clean: 0, helped: 0, wrong: 0, wrongTaps: 0, skips: 0, time: 0, streak: 0, best: 0 },
+      drill: { found: 0, clean: 0, helped: 0, hints: 0, wrong: 0, wrongTaps: 0, skips: 0, time: 0, streak: 0, best: 0 },
       flash: { got: 0, missed: 0 },
       items: {},   // id -> { r: right, w: wrong, h: with a hint }
     };
@@ -86,6 +86,7 @@
       } else if (type === "drill") {
         // d: { id, clean, wrong, hinted, secs }
         dr.found++; dr.time += d.secs; dr.wrongTaps += d.wrong;
+        if (d.hinted) dr.hints = (dr.hints || 0) + 1;
         if (d.clean) { dr.clean++; dr.streak++; dr.best = Math.max(dr.best, dr.streak); }
         else { dr.streak = 0; if (d.wrong) dr.wrong++; else dr.helped++; }
         itemMark(s, d.id, d.clean ? "r" : d.wrong ? "w" : "h");
@@ -240,7 +241,7 @@
     var wrong = p.wrongOrders + dr.wrong + dr.skips + f.missed;
     var all = right + helped + wrong;
     return { right: right, helped: helped, wrong: wrong, all: all,
-             hints: p.hints + dr.helped,
+             hints: p.hints + (dr.hints || dr.helped),
              pct: function (n) { return all ? Math.round(100 * n / all) + "%" : "–"; } };
   }
   function fmtDur(secs) {
@@ -275,8 +276,8 @@
     var tiles = [
       ["Time on the site", fmtDur(s.time.total), "today " + fmtDur(s.time.days[today()])],
       ["Right answers", t.pct(t.right), t.right + " of " + t.all + " answers"],
-      ["Wrong answers", t.pct(t.wrong), t.wrong + " answers"],
-      ["Right with a hint", t.pct(t.helped), t.hints + " hint" + (t.hints === 1 ? "" : "s") + " used in all"],
+      ["Wrong answers", t.pct(t.wrong), t.wrong + " answer" + (t.wrong === 1 ? "" : "s")],
+      ["Hints used", t.hints, t.helped + " answer" + (t.helped === 1 ? "" : "s") + " right with a hint (" + t.pct(t.helped) + ")"],
       ["Practice orders", p.orders, pct(p.perfect, p.orders) + " perfect · avg " + (p.orders - p.gaveUp ? fmtDur(p.time / (p.orders - p.gaveUp)) : "–")],
       ["Items learned", s.learnedHere || 0, "known 3 times in a row (Find it / Flashcards)"],
     ];
@@ -316,17 +317,17 @@
         "<div class='st-split' role='img' aria-label='Right " + t.pct(t.right) + ", with a hint " + t.pct(t.helped) + ", wrong " + t.pct(t.wrong) + "'>" +
           (t.all ? ["right", "helped", "wrong"].map(function (k) { return t[k] ? "<span class='st-" + k + "' style='flex:" + t[k] + "'></span>" : ""; }).join("") : "<span class='st-empty'></span>") +
         "</div>" +
-        "<div class='st-legend'><span><i class='st-right'></i>Right " + t.pct(t.right) + "</span><span><i class='st-helped'></i>With a hint " + t.pct(t.helped) +
-        "</span><span><i class='st-wrong'></i>Wrong " + t.pct(t.wrong) + "</span></div>" +
+        "<div class='st-legend'><span><i class='st-right'></i>Right " + t.pct(t.right) + " (" + t.right + ")" + "</span><span><i class='st-helped'></i>With a hint " + t.pct(t.helped) + " (" + t.helped + ")" +
+        "</span><span><i class='st-wrong'></i>Wrong " + t.pct(t.wrong) + " (" + t.wrong + ")" + "</span></div>" +
       "</section>" +
 
       "<section class='st-card'><h3>By mode</h3><div class='st-table-wrap'><table class='st-table'>" +
-        "<tr><th></th><th>Done</th><th>Right</th><th>With hint</th><th>Wrong</th><th>Avg time</th><th>Best streak</th></tr>" +
-        "<tr><th>Practice orders</th><td>" + p.orders + "</td><td>" + pct(p.perfect, p.orders) + "</td><td>" + pct(p.helped, p.orders) +
+        "<tr><th></th><th>Done</th><th>Right</th><th>With hint</th><th>Hints used</th><th>Wrong</th><th>Avg time</th><th>Best streak</th></tr>" +
+        "<tr><th>Practice orders</th><td>" + p.orders + "</td><td>" + pct(p.perfect, p.orders) + "</td><td>" + pct(p.helped, p.orders) + "</td><td>" + p.hints +
           "</td><td>" + pct(p.wrongOrders, p.orders) + "</td><td>" + (p.orders - p.gaveUp ? fmtDur(p.time / (p.orders - p.gaveUp)) : "–") + "</td><td>" + p.best + "</td></tr>" +
-        "<tr><th>Find it</th><td>" + (dr.found + dr.skips) + "</td><td>" + pct(dr.clean, dr.found + dr.skips) + "</td><td>" + pct(dr.helped, dr.found + dr.skips) +
+        "<tr><th>Find it</th><td>" + (dr.found + dr.skips) + "</td><td>" + pct(dr.clean, dr.found + dr.skips) + "</td><td>" + pct(dr.helped, dr.found + dr.skips) + "</td><td>" + (dr.hints || dr.helped) +
           "</td><td>" + pct(dr.wrong + dr.skips, dr.found + dr.skips) + "</td><td>" + (dr.found ? (dr.time / dr.found).toFixed(1) + "s" : "–") + "</td><td>" + dr.best + "</td></tr>" +
-        "<tr><th>Flashcards</th><td>" + (f.got + f.missed) + "</td><td>" + pct(f.got, f.got + f.missed) + "</td><td>–</td><td>" + pct(f.missed, f.got + f.missed) + "</td><td>–</td><td>–</td></tr>" +
+        "<tr><th>Flashcards</th><td>" + (f.got + f.missed) + "</td><td>" + pct(f.got, f.got + f.missed) + "</td><td>–</td><td>–</td><td>" + pct(f.missed, f.got + f.missed) + "</td><td>–</td><td>–</td></tr>" +
       "</table></div>" +
       "<p class='muted st-small'>Practice: " + p.items + " items rung up · " + p.wrongChecks + " wrong order checks · " + p.wrongCard + " wrong card types · " +
         p.gaveUp + " gave up · " + p.hints + " \"Where is it?\" hints. Find it: " + dr.wrongTaps + " wrong taps · " + dr.skips + " skipped.</p></section>" +
@@ -479,7 +480,7 @@
         "</td><td>" + s.practice.orders + "</td><td>" + t.pct(t.right) + "</td><td>" + t.pct(t.helped) + "</td><td>" + t.pct(t.wrong) +
         "</td><td>" + t.hints + "</td><td>" + (s.learnedHere || 0) + "</td><td>" + (s.sessions ? fmtDate(s.last) : "–") + "</td></tr>";
     });
-    return "<div class='st-table-wrap'><table class='st-table'><tr><th>Person</th><th>Time</th><th>Orders</th><th>Right</th><th>Hint</th><th>Wrong</th><th>Hints</th><th>Learned</th><th>Last seen</th></tr>" +
+    return "<div class='st-table-wrap'><table class='st-table'><tr><th>Person</th><th>Time</th><th>Orders</th><th>Right</th><th>Right w/ hint</th><th>Wrong</th><th>Hints used</th><th>Learned</th><th>Last seen</th></tr>" +
       rows.join("") + "</table></div>";
   }
 
