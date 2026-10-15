@@ -54,8 +54,8 @@
     sync.changed(JJ.user.id);
   }
   function itemMark(s, id, kind) {
-    var it = s.items[id] || (s.items[id] = { r: 0, w: 0, h: 0 });
-    it[kind]++;
+    var it = s.items[id] || (s.items[id] = { r: 0, h: 0, s: 0, w: 0 });
+    it[kind] = (it[kind] || 0) + 1;
   }
 
   // Called by app.js
@@ -82,7 +82,7 @@
       } else if (type === "giveup") {
         p.gaveUp++; p.wrongOrders++; p.orders++; p.streak = 0;
         p.hints += d.hinted.length;
-        d.lines.forEach(function (l) { itemMark(s, l.itemId, "w"); });
+        d.lines.forEach(function (l) { itemMark(s, l.itemId, "s"); });
       } else if (type === "drill") {
         // d: { id, clean, wrong, hinted, secs }
         dr.found++; dr.time += d.secs; dr.wrongTaps += d.wrong;
@@ -92,7 +92,7 @@
         itemMark(s, d.id, d.clean ? "r" : d.wrong ? "w" : "h");
       } else if (type === "drill-skip") {
         dr.skips++; dr.streak = 0;
-        itemMark(s, d.id, "w");
+        itemMark(s, d.id, "s");
       } else if (type === "flash") {
         if (d.ok) s.flash.got++; else s.flash.missed++;
         itemMark(s, d.id, d.ok ? "r" : "w");
@@ -169,7 +169,11 @@
       return JSON.stringify({ key: CFG.key, action: "push", rows: ids.map(function (id) {
         var s = load(id), t = totals(s), a = accts.find(function (x) { return x.id === id; });
         s.learnedHere = learnedCount(id);
-        return { id: id, name: a ? a.name : id, device: device, stats: s,
+        var names = {};
+        Object.keys(s.items).forEach(function (k) {
+          if (JJ.items[k]) { var sec = JJ.itemSection(k); names[k] = [JJ.items[k].full, sec.type, sec["case"]]; }
+        });
+        return { id: id, name: a ? a.name : id, level: a ? a.level : "", device: device, stats: s, names: names,
                  summary: { minutes: Math.round(s.time.total / 60), right: t.pct(t.right), wrong: t.pct(t.wrong), orders: s.practice.orders } };
       }) });
     }
@@ -289,9 +293,9 @@
     var mt = s.time.modes || {};
     var tiles = [
       ["Time on the site", fmtDur(s.time.total), "today " + fmtDur(s.time.days[today()])],
-      ["Right answers", t.pct(t.right), t.right + " of " + t.all + " answers"],
+      ["Right answers", t.right, t.pct(t.right) + " of " + t.all + " answers"],
       ["Wrong answers", t.wrong, t.pct(t.wrong) + " of " + t.all + " answers"],
-      ["Hints used", t.hints, t.helped + " answer" + (t.helped === 1 ? "" : "s") + " right with a hint (" + t.pct(t.helped) + ")"],
+      ["Right with a hint", t.helped, t.pct(t.helped) + " of " + t.all + " answers · " + t.hints + " hint" + (t.hints === 1 ? "" : "s") + " used"],
       ["Practice orders", p.orders, pct(p.perfect, p.orders) + " perfect · avg " + (p.orders - p.gaveUp ? fmtDur(p.time / (p.orders - p.gaveUp)) : "–")],
       ["Items learned", s.learnedHere || 0, "known 3 times in a row (Find it / Flashcards)"],
     ];
@@ -306,9 +310,6 @@
     }
     var maxMin = Math.max(1, Math.ceil(max / 60));
 
-    var missed = Object.keys(s.items).map(function (k) { return { id: k, it: s.items[k] }; })
-      .filter(function (x) { return x.it.w + x.it.h > 0 && JJ.items[x.id]; })
-      .sort(function (a, b) { return (b.it.w * 2 + b.it.h) - (a.it.w * 2 + a.it.h); }).slice(0, 10);
 
     var html =
       "<section class='st-card st-head'>" +
@@ -331,17 +332,17 @@
         "<div class='st-split' role='img' aria-label='Right " + t.pct(t.right) + ", with a hint " + t.pct(t.helped) + ", wrong " + t.pct(t.wrong) + "'>" +
           (t.all ? ["right", "helped", "wrong"].map(function (k) { return t[k] ? "<span class='st-" + k + "' style='flex:" + t[k] + "'></span>" : ""; }).join("") : "<span class='st-empty'></span>") +
         "</div>" +
-        "<div class='st-legend'><span><i class='st-right'></i>Right " + t.pct(t.right) + " (" + t.right + ")" + "</span><span><i class='st-helped'></i>With a hint " + t.pct(t.helped) + " (" + t.helped + ")" +
-        "</span><span><i class='st-wrong'></i>Wrong " + t.pct(t.wrong) + " (" + t.wrong + ")" + "</span></div>" +
+        "<div class='st-legend'><span><i class='st-right'></i>Right " + t.right + " (" + t.pct(t.right) + ")" + "</span><span><i class='st-helped'></i>With a hint " + t.helped + " (" + t.pct(t.helped) + ")" +
+        "</span><span><i class='st-wrong'></i>Wrong " + t.wrong + " (" + t.pct(t.wrong) + ")" + "</span></div>" +
       "</section>" +
 
       "<section class='st-card'><h3>By mode</h3><div class='st-table-wrap'><table class='st-table'>" +
         "<tr><th></th><th>Done</th><th>Right</th><th>With hint</th><th>Hints used</th><th>Wrong</th><th>Avg time</th><th>Best streak</th><th>Time spent</th></tr>" +
-        "<tr><th>Practice orders</th><td>" + p.orders + "</td><td>" + pct(p.perfect, p.orders) + "</td><td>" + pct(p.helped, p.orders) + "</td><td>" + p.hints +
+        "<tr><th>Practice orders</th><td>" + p.orders + "</td><td>" + p.perfect + " (" + pct(p.perfect, p.orders) + ")</td><td>" + p.helped + " (" + pct(p.helped, p.orders) + ")</td><td>" + p.hints +
           "</td><td>" + p.wrongOrders + " (" + pct(p.wrongOrders, p.orders) + ")</td><td>" + (p.orders - p.gaveUp ? fmtDur(p.time / (p.orders - p.gaveUp)) : "–") + "</td><td>" + p.best + "</td><td>" + fmtDur(mt.practice) + "</td></tr>" +
-        "<tr><th>Find it</th><td>" + (dr.found + dr.skips) + "</td><td>" + pct(dr.clean, dr.found + dr.skips) + "</td><td>" + pct(dr.helped, dr.found + dr.skips) + "</td><td>" + (dr.hints || dr.helped) +
+        "<tr><th>Find it</th><td>" + (dr.found + dr.skips) + "</td><td>" + dr.clean + " (" + pct(dr.clean, dr.found + dr.skips) + ")</td><td>" + dr.helped + " (" + pct(dr.helped, dr.found + dr.skips) + ")</td><td>" + (dr.hints || dr.helped) +
           "</td><td>" + (dr.wrong + dr.skips) + " (" + pct(dr.wrong + dr.skips, dr.found + dr.skips) + ")</td><td>" + (dr.found ? (dr.time / dr.found).toFixed(1) + "s" : "–") + "</td><td>" + dr.best + "</td><td>" + fmtDur(mt.drill) + "</td></tr>" +
-        "<tr><th>Flashcards</th><td>" + (f.got + f.missed) + "</td><td>" + pct(f.got, f.got + f.missed) + "</td><td>–</td><td>–</td><td>" + f.missed + " (" + pct(f.missed, f.got + f.missed) + ")</td><td>–</td><td>–</td><td>" + fmtDur(mt.flash) + "</td></tr>" +
+        "<tr><th>Flashcards</th><td>" + (f.got + f.missed) + "</td><td>" + f.got + " (" + pct(f.got, f.got + f.missed) + ")</td><td>–</td><td>–</td><td>" + f.missed + " (" + pct(f.missed, f.got + f.missed) + ")</td><td>–</td><td>–</td><td>" + fmtDur(mt.flash) + "</td></tr>" +
       "</table></div>" +
       "<p class='muted st-small'>Practice: " + p.items + " items rung up · " + p.wrongChecks + " wrong order checks · " + p.wrongCard + " wrong card types · " +
         p.gaveUp + " gave up · " + p.hints + " \"Where is it?\" hints. Find it: " + dr.wrongTaps + " wrong taps · " + dr.skips + " skipped.</p></section>" +
@@ -353,13 +354,18 @@
           return "<div class='st-bar' title='" + d.date + ": " + fmtDur(d.v) + "'><div class='st-fill' style='height:" + (100 * d.v / (maxMin * 60)).toFixed(1) + "%'></div><span>" + d.label + "</span></div>";
         }).join("") + "</div></section>" +
 
-      "<section class='st-card'><h3>Items to work on</h3>" +
-        (missed.length ? "<ol class='st-missed'>" + missed.map(function (x) {
-          return "<li><span>" + esc(JJ.items[x.id].full) + "</span><span class='muted'>" + x.it.w + " wrong · " + x.it.h + " with hint · " + x.it.r + " right</span></li>";
-        }).join("") + "</ol>" : "<p class='muted'>Nothing missed yet. Items you get wrong or need a hint for show up here.</p>") +
-      "</section>";
+      "<section class='st-card'><div class='it-head'><h3>Items</h3>" +
+        "<label class='mode-slider it-switch' title='Top 10: the items missed most. Everything: every item practiced so far.'>" +
+          "<span class='ms-off'>Top 10 missed</span><input type='checkbox' id='it-all' role='switch' aria-label='Show every item'" + (itemView.all ? " checked" : "") + ">" +
+          "<span class='ms-track'><span class='ms-knob'></span></span><span class='ms-on'>Everything</span></label>" +
+        "<label class='ad-row'>Group by <select id='it-group'><option value='type'>Item type</option><option value='case'" + (itemView.group === "case" ? " selected" : "") + ">Display case</option></select></label>" +
+        "</div><div id='it-body'></div></section>";
 
     $("stats-page").innerHTML = html;
+    var drawItems = function () { $("it-body").innerHTML = itemsHtml(s); };
+    $("it-all").onchange = function () { itemView.all = this.checked; saveItemView(); drawItems(); };
+    $("it-group").onchange = function () { itemView.group = this.value; saveItemView(); drawItems(); };
+    drawItems();
     if (mine && $("st-copy")) $("st-copy").onclick = function () {
       var box = $("st-code");
       box.value = "JJSTATS1:" + btoa(unescape(encodeURIComponent(JSON.stringify({ id: id, name: acct.name, stats: s }))));
@@ -377,6 +383,65 @@
       if (mine) JJ.reloadLearn();
       renderStatsPage();
     };
+  }
+
+  // ---- Items table ----
+  // Each item's Right / With hint / Skipped / Wrong, in sections by register
+  // folder ("item type") or display case. "Top 10 missed" ranks by wrong and
+  // skipped (counted double) plus hints.
+  var itemView = { all: false, group: "type" };
+  try { var iv = JSON.parse(localStorage.getItem("jj-items-view")); if (iv) itemView = iv; } catch (e) {}
+  function saveItemView() { try { localStorage.setItem("jj-items-view", JSON.stringify(itemView)); } catch (e) {} }
+
+  var ORDER = null, CASE_OF = null;
+  function itemOrder(id) {
+    if (!ORDER) { ORDER = {}; Object.keys(JJ.items).forEach(function (k, i) { ORDER[k] = i; }); }
+    return ORDER[id] == null ? 1e9 : ORDER[id];
+  }
+  function typeOf(id) {
+    var it = JJ.items[id];
+    return it ? it.path.map(function (f) { return f.name; }).join(" › ") || "Top Menu" : "Other";
+  }
+  function caseOf(id) {
+    if (!CASE_OF) {
+      CASE_OF = {};
+      (window.DISPLAY_CASES || []).forEach(function (c) { c.rows.forEach(function (r) { r.items.forEach(function (x) { CASE_OF[x] = c.name; }); }); });
+    }
+    return CASE_OF[id] || "Not in a case";
+  }
+  JJ.itemSection = function (id) { return { type: typeOf(id), "case": caseOf(id) }; };
+  function missScore(c) { return (c.w || 0) * 2 + (c.s || 0) * 2 + (c.h || 0); }
+
+  function itemsHtml(s) {
+    var rows = Object.keys(s.items).filter(function (id) { return JJ.items[id]; }).map(function (id) {
+      var c = s.items[id];
+      return { id: id, r: c.r || 0, h: c.h || 0, s: c.s || 0, w: c.w || 0 };
+    }).filter(function (x) { return x.r + x.h + x.s + x.w > 0; });
+    if (!itemView.all) {
+      rows = rows.filter(function (x) { return missScore(x) > 0; })
+        .sort(function (a, b) { return missScore(b) - missScore(a); }).slice(0, 10);
+      if (!rows.length) return "<p class='muted'>Nothing missed yet. Items you get wrong, skip or need a hint for show up here. Switch to <b>Everything</b> to see every item you've practiced.</p>";
+    } else if (!rows.length) return "<p class='muted'>No items practiced yet.</p>";
+    var groupOf = itemView.group === "case" ? caseOf : typeOf;
+    var groups = {}, names = [];
+    rows.forEach(function (x) { var g = groupOf(x.id); if (!groups[g]) { groups[g] = []; names.push(g); } groups[g].push(x); });
+    // sections in register / case order; inside, most missed first (Top 10) or register order (Everything)
+    var caseIndex = {}; (window.DISPLAY_CASES || []).forEach(function (c, i) { caseIndex[c.name] = i; });
+    names.sort(function (a, b) {
+      if (itemView.group === "case") return (caseIndex[a] == null ? 99 : caseIndex[a]) - (caseIndex[b] == null ? 99 : caseIndex[b]);
+      return itemOrder(groups[a][0].id) - itemOrder(groups[b][0].id);
+    });
+    return "<div class='st-table-wrap'><table class='st-table it-table'><tr><th>Item</th><th>Right</th><th>With hint</th><th>Skipped</th><th>Wrong</th></tr>" +
+      names.map(function (g) {
+        var list = groups[g].sort(itemView.all
+          ? function (a, b) { return itemOrder(a.id) - itemOrder(b.id); }
+          : function (a, b) { return missScore(b) - missScore(a); });
+        return "<tr class='it-sec'><th colspan='5'>" + esc(g) + " <span class='muted'>(" + list.length + ")</span></th></tr>" +
+          list.map(function (x) {
+            return "<tr><td>" + esc(JJ.items[x.id].full) + "</td><td class='it-r'>" + x.r + "</td><td class='it-h'>" + x.h +
+              "</td><td class='it-s'>" + x.s + "</td><td class='it-w'>" + x.w + "</td></tr>";
+          }).join("");
+      }).join("") + "</table></div>";
   }
 
   // ------------------------------------------------------------------
@@ -492,7 +557,7 @@
     var rows = Object.keys(ids).map(function (id) {
       var s = combined(id), t = totals(s);
       return "<tr><th><button class='linkish st-view-row' data-id='" + esc(id) + "'>" + esc(ids[id]) + "</button></th><td>" + fmtDur(s.time.total) +
-        "</td><td>" + s.practice.orders + "</td><td>" + t.pct(t.right) + "</td><td>" + t.pct(t.helped) + "</td><td>" + t.wrong + " (" + t.pct(t.wrong) + ")" +
+        "</td><td>" + s.practice.orders + "</td><td>" + t.right + " (" + t.pct(t.right) + ")</td><td>" + t.helped + " (" + t.pct(t.helped) + ")</td><td>" + t.wrong + " (" + t.pct(t.wrong) + ")" +
         "</td><td>" + t.hints + "</td><td>" + (s.learnedHere || 0) + "</td><td>" + (s.sessions ? fmtDate(s.last) : "–") + "</td></tr>";
     });
     return "<div class='st-table-wrap'><table class='st-table'><tr><th>Person</th><th>Time</th><th>Orders</th><th>Right</th><th>Right w/ hint</th><th>Wrong</th><th>Hints used</th><th>Learned</th><th>Last seen</th></tr>" +
