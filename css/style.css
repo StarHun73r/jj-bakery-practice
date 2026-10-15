@@ -420,3 +420,8 @@ body.stats .ipad, body.admin .ipad { display: none; }
 .code-dots { justify-content: center; margin-top: 6px; }
 .code-dots span { border-color: #8a929a; }
 @media (max-width: 700px) { .who { margin-left: 0; } .st-num { font-size: 1.5rem; } }
+.st-modes { display: flex; flex-direction: column; gap: 8px; }
+.st-mode { display: grid; grid-template-columns: 90px minmax(0, 1fr) 110px; align-items: center; gap: 10px; font-size: .88rem; font-variant-numeric: tabular-nums; }
+.st-mtrack { height: 14px; background: #eef0f2; border-radius: 4px; overflow: hidden; }
+.st-mfill { height: 100%; background: var(--blue); border-radius: 4px; }
+.st-mval { text-align: right; color: var(--muted); }

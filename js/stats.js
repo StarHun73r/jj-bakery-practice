@@ -26,7 +26,7 @@
   function blank() {
     return {
       first: Date.now(), last: Date.now(), sessions: 0,
-      time: { total: 0, days: {} },
+      time: { total: 0, days: {}, modes: {} },
       practice: { orders: 0, perfect: 0, helped: 0, wrongOrders: 0, wrongChecks: 0, wrongCard: 0,
                   gaveUp: 0, hints: 0, time: 0, items: 0, streak: 0, best: 0 },
       drill: { found: 0, clean: 0, helped: 0, hints: 0, wrong: 0, wrongTaps: 0, skips: 0, time: 0, streak: 0, best: 0 },
@@ -102,13 +102,15 @@
   };
 
   // Active time: counts while signed in, the page is visible and someone
-  // has touched it in the last minute.
+  // has touched it (tap, click, key, scroll) in the last 2 minutes.
   var TICK = 5;
   setInterval(function () {
     if (!JJ.user || JJ.isLocked() || document.visibilityState !== "visible") return;
-    if (Date.now() - JJ.lastActive() > 60000) return;
+    if (Date.now() - JJ.lastActive() > 2 * 60000) return;
     update(function (s) {
       s.time.total += TICK;
+      var m = JJ.mode && JJ.mode();
+      if (m) { s.time.modes = s.time.modes || {}; s.time.modes[m] = (s.time.modes[m] || 0) + TICK; }
       var d = today();
       s.time.days[d] = (s.time.days[d] || 0) + TICK;
     });
@@ -249,6 +251,17 @@
     var h = Math.floor(secs / 3600), m = Math.floor(secs % 3600 / 60), s = secs % 60;
     return h ? h + "h " + m + "m" : m ? m + "m " + s + "s" : s + "s";
   }
+  // horizontal bars: time in each tab, longest first
+  var MODE_NAMES = { register: "Register", practice: "Practice", drill: "Find it", flash: "Flashcards", cases: "Cases", photos: "Photos", sheet: "Sheet", stats: "Stats", admin: "Admin" };
+  function modeTimeHtml(mt) {
+    var list = Object.keys(MODE_NAMES).map(function (k) { return { k: k, v: mt[k] || 0 }; }).filter(function (x) { return x.v; })
+      .sort(function (a, b) { return b.v - a.v; });
+    var max = list.length ? list[0].v : 1, all = list.reduce(function (a, x) { return a + x.v; }, 0);
+    return "<section class='st-card'><h3>Time in each mode</h3>" + (list.length ? "<div class='st-modes'>" + list.map(function (x) {
+      return "<div class='st-mode'><span>" + MODE_NAMES[x.k] + "</span><div class='st-mtrack'><div class='st-mfill' style='width:" + (100 * x.v / max).toFixed(1) +
+        "%'></div></div><span class='st-mval'>" + fmtDur(x.v) + " · " + Math.round(100 * x.v / all) + "%</span></div>";
+    }).join("") + "</div>" : "<p class='muted'>No time recorded yet. It counts while the site is open and being used (stops after 2 minutes with no taps or clicks).</p>") + "</section>";
+  }
   function fmtDate(t) { return t ? new Date(t).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "–"; }
   function pct(a, b) { return b ? Math.round(100 * a / b) + "%" : "–"; }
   function learnedCount(id) {
@@ -273,10 +286,11 @@
     var s = combined(id), t = totals(s), p = s.practice, dr = s.drill, f = s.flash;
     var mine = id === JJ.user.id;
 
+    var mt = s.time.modes || {};
     var tiles = [
       ["Time on the site", fmtDur(s.time.total), "today " + fmtDur(s.time.days[today()])],
       ["Right answers", t.pct(t.right), t.right + " of " + t.all + " answers"],
-      ["Wrong answers", t.pct(t.wrong), t.wrong + " answer" + (t.wrong === 1 ? "" : "s")],
+      ["Wrong answers", t.wrong, t.pct(t.wrong) + " of " + t.all + " answers"],
       ["Hints used", t.hints, t.helped + " answer" + (t.helped === 1 ? "" : "s") + " right with a hint (" + t.pct(t.helped) + ")"],
       ["Practice orders", p.orders, pct(p.perfect, p.orders) + " perfect · avg " + (p.orders - p.gaveUp ? fmtDur(p.time / (p.orders - p.gaveUp)) : "–")],
       ["Items learned", s.learnedHere || 0, "known 3 times in a row (Find it / Flashcards)"],
@@ -322,16 +336,17 @@
       "</section>" +
 
       "<section class='st-card'><h3>By mode</h3><div class='st-table-wrap'><table class='st-table'>" +
-        "<tr><th></th><th>Done</th><th>Right</th><th>With hint</th><th>Hints used</th><th>Wrong</th><th>Avg time</th><th>Best streak</th></tr>" +
+        "<tr><th></th><th>Done</th><th>Right</th><th>With hint</th><th>Hints used</th><th>Wrong</th><th>Avg time</th><th>Best streak</th><th>Time spent</th></tr>" +
         "<tr><th>Practice orders</th><td>" + p.orders + "</td><td>" + pct(p.perfect, p.orders) + "</td><td>" + pct(p.helped, p.orders) + "</td><td>" + p.hints +
-          "</td><td>" + pct(p.wrongOrders, p.orders) + "</td><td>" + (p.orders - p.gaveUp ? fmtDur(p.time / (p.orders - p.gaveUp)) : "–") + "</td><td>" + p.best + "</td></tr>" +
+          "</td><td>" + p.wrongOrders + " (" + pct(p.wrongOrders, p.orders) + ")</td><td>" + (p.orders - p.gaveUp ? fmtDur(p.time / (p.orders - p.gaveUp)) : "–") + "</td><td>" + p.best + "</td><td>" + fmtDur(mt.practice) + "</td></tr>" +
         "<tr><th>Find it</th><td>" + (dr.found + dr.skips) + "</td><td>" + pct(dr.clean, dr.found + dr.skips) + "</td><td>" + pct(dr.helped, dr.found + dr.skips) + "</td><td>" + (dr.hints || dr.helped) +
-          "</td><td>" + pct(dr.wrong + dr.skips, dr.found + dr.skips) + "</td><td>" + (dr.found ? (dr.time / dr.found).toFixed(1) + "s" : "–") + "</td><td>" + dr.best + "</td></tr>" +
-        "<tr><th>Flashcards</th><td>" + (f.got + f.missed) + "</td><td>" + pct(f.got, f.got + f.missed) + "</td><td>–</td><td>–</td><td>" + pct(f.missed, f.got + f.missed) + "</td><td>–</td><td>–</td></tr>" +
+          "</td><td>" + (dr.wrong + dr.skips) + " (" + pct(dr.wrong + dr.skips, dr.found + dr.skips) + ")</td><td>" + (dr.found ? (dr.time / dr.found).toFixed(1) + "s" : "–") + "</td><td>" + dr.best + "</td><td>" + fmtDur(mt.drill) + "</td></tr>" +
+        "<tr><th>Flashcards</th><td>" + (f.got + f.missed) + "</td><td>" + pct(f.got, f.got + f.missed) + "</td><td>–</td><td>–</td><td>" + f.missed + " (" + pct(f.missed, f.got + f.missed) + ")</td><td>–</td><td>–</td><td>" + fmtDur(mt.flash) + "</td></tr>" +
       "</table></div>" +
       "<p class='muted st-small'>Practice: " + p.items + " items rung up · " + p.wrongChecks + " wrong order checks · " + p.wrongCard + " wrong card types · " +
         p.gaveUp + " gave up · " + p.hints + " \"Where is it?\" hints. Find it: " + dr.wrongTaps + " wrong taps · " + dr.skips + " skipped.</p></section>" +
 
+      modeTimeHtml(mt) +
       "<section class='st-card'><h3>Active time, last 14 days <span class='muted'>(minutes)</span></h3>" +
         "<div class='st-bars'><div class='st-axis'><span>" + maxMin + "</span><span>0</span></div>" +
         days.map(function (d) {
@@ -477,7 +492,7 @@
     var rows = Object.keys(ids).map(function (id) {
       var s = combined(id), t = totals(s);
       return "<tr><th><button class='linkish st-view-row' data-id='" + esc(id) + "'>" + esc(ids[id]) + "</button></th><td>" + fmtDur(s.time.total) +
-        "</td><td>" + s.practice.orders + "</td><td>" + t.pct(t.right) + "</td><td>" + t.pct(t.helped) + "</td><td>" + t.pct(t.wrong) +
+        "</td><td>" + s.practice.orders + "</td><td>" + t.pct(t.right) + "</td><td>" + t.pct(t.helped) + "</td><td>" + t.wrong + " (" + t.pct(t.wrong) + ")" +
         "</td><td>" + t.hints + "</td><td>" + (s.learnedHere || 0) + "</td><td>" + (s.sessions ? fmtDate(s.last) : "–") + "</td></tr>";
     });
     return "<div class='st-table-wrap'><table class='st-table'><tr><th>Person</th><th>Time</th><th>Orders</th><th>Right</th><th>Right w/ hint</th><th>Wrong</th><th>Hints used</th><th>Learned</th><th>Last seen</th></tr>" +
