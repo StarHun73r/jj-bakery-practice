@@ -3,8 +3,10 @@
 // Who is signed in comes from the lock screen (lock.js / accounts.js). Every
 // answer in Practice, Find it and Flashcards, every hint and every minute of
 // active use is recorded for that person, in this browser (localStorage key
-// "jj-ustats:<account id>"). The site has no server, so each device keeps its
-// own numbers; a person can copy a "stats code" and the admin can paste it in.
+// "jj-ustats:<account id>"). When js/sync-config.js has a Google Sheet URL, each
+// device also sends its numbers there and reads everyone else's, so a person's
+// stats add up across every device they use (see tools/google-sheet-sync.gs).
+// Without it, a person can copy a "stats code" and the admin can paste it in.
 //
 // Loaded after app.js, which shares ITEMS, esc() and setMode() through window.JJ.
 (function () {
@@ -49,6 +51,7 @@
     fn(s);
     s.last = Date.now();
     save(JJ.user.id, s);
+    sync.changed(JJ.user.id);
   }
   function itemMark(s, id, kind) {
     var it = s.items[id] || (s.items[id] = { r: 0, w: 0, h: 0 });
@@ -111,6 +114,119 @@
   }, TICK * 1000);
 
   // ------------------------------------------------------------------
+  //  Sync with the Google Sheet
+  // ------------------------------------------------------------------
+  // Each device has its own id and keeps one row per person in the Sheet.
+  // What's shown is this device's numbers plus every other device's row.
+  var CFG = window.JJ_SYNC || {};
+  var sync = (function () {
+    var on = !!CFG.url, device, remote = {}, dirty = {}, lastPull = 0, pulling = null, status = "";
+    try {
+      device = localStorage.getItem("jj-device");
+      if (!device) { device = "d" + Math.random().toString(36).slice(2, 10); localStorage.setItem("jj-device", device); }
+      remote = JSON.parse(localStorage.getItem("jj-remote-stats")) || {};
+      dirty = JSON.parse(localStorage.getItem("jj-sync-dirty")) || {};
+    } catch (e) { device = device || "d-unknown"; }
+    function keep() { try { localStorage.setItem("jj-sync-dirty", JSON.stringify(dirty)); } catch (e) {} }
+
+    function pull(force) {
+      if (!on) return Promise.resolve();
+      if (pulling) return pulling;
+      if (!force && Date.now() - lastPull < 30000) return Promise.resolve();
+      pulling = fetch(CFG.url + "?key=" + encodeURIComponent(CFG.key))
+        .then(function (r) { return r.json(); })
+        .then(function (r) {
+          if (!r.ok) throw new Error(r.error);
+          var byId = {};
+          r.rows.forEach(function (row) { (byId[row.id] = byId[row.id] || []).push(row); });
+          // a person was reset after this device's copy started: drop the local copy
+          Object.keys(byId).forEach(function (id) {
+            var mark = byId[id].filter(function (x) { return x.device === "reset"; }).map(function (x) { return x.stats.resetAt || 0; });
+            if (!mark.length) return;
+            var at = Math.max.apply(null, mark);
+            // rows that started before the reset are old copies: ignore them
+            byId[id] = byId[id].filter(function (x) { return x.device === "reset" || !(x.stats.first < at); });
+            var have = null; try { have = JSON.parse(localStorage.getItem(key(id))); } catch (e) {}
+            if (have && have.first < at) {
+              try { localStorage.removeItem(key(id)); localStorage.removeItem("jj-learn:" + id); } catch (e) {}
+              dirty[id] = 1; keep();   // upload the empty copy so the Sheet matches
+              setTimeout(function () { push(false); }, 0);
+              if (JJ.user && JJ.user.id === id) JJ.reloadLearn();
+            }
+          });
+          remote = byId; lastPull = Date.now(); status = "ok";
+          try { localStorage.setItem("jj-remote-stats", JSON.stringify(remote)); } catch (e) {}
+        })
+        .catch(function () { status = "offline"; })
+        .then(function () { pulling = null; });
+      return pulling;
+    }
+    function body(ids) {
+      var accts = JJ.config().accounts;
+      return JSON.stringify({ key: CFG.key, action: "push", rows: ids.map(function (id) {
+        var s = load(id), t = totals(s), a = accts.find(function (x) { return x.id === id; });
+        s.learnedHere = learnedCount(id);
+        return { id: id, name: a ? a.name : id, device: device, stats: s,
+                 summary: { minutes: Math.round(s.time.total / 60), right: t.pct(t.right), wrong: t.pct(t.wrong), orders: s.practice.orders } };
+      }) });
+    }
+    // send every person changed on this device; text/plain avoids a CORS preflight
+    function push(beacon) {
+      var ids = Object.keys(dirty);
+      if (!on || !ids.length) return Promise.resolve();
+      var data = body(ids);
+      dirty = {}; keep();
+      if (beacon && navigator.sendBeacon) { navigator.sendBeacon(CFG.url, new Blob([data], { type: "text/plain" })); return Promise.resolve(); }
+      return fetch(CFG.url, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: data })
+        .then(function () { status = "ok"; })
+        .catch(function () { ids.forEach(function (id) { dirty[id] = 1; }); keep(); status = "offline"; });
+    }
+    setInterval(function () { push(false); }, 30000);
+    document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") push(true); });
+    window.addEventListener("pagehide", function () { push(true); });
+
+    return {
+      on: on, device: device,
+      status: function () { return !on ? "off" : status || "waiting"; },
+      changed: function (id) { dirty[id] = 1; keep(); },
+      pull: pull, push: push,
+      others: function (id) { return (remote[id] || []).filter(function (r) { return r.device !== device && r.device !== "reset"; }); },
+      ids: function () { return Object.keys(remote).filter(function (id) { return remote[id].some(function (r) { return r.device !== "reset"; }); }); },
+      nameOf: function (id) { var r = remote[id]; return r && r[0] && r[0].name; },
+      reset: function (id) {
+        delete remote[id];
+        if (!on) return;
+        fetch(CFG.url, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ key: CFG.key, action: "reset", id: id, resetAt: Date.now(), name: (accountById(id) || {}).name || id }) }).catch(function () {});
+      },
+    };
+  })();
+
+  // Add stats together: counts are summed, "first" is the earliest, "last" and streaks the best.
+  function addStats(a, b) {
+    var out = JSON.parse(JSON.stringify(a));
+    (function walk(x, y, path) {
+      Object.keys(y).forEach(function (k) {
+        var v = y[k];
+        if (v && typeof v === "object") { if (!x[k] || typeof x[k] !== "object") x[k] = {}; walk(x[k], v, k); }
+        else if (typeof v === "number") {
+          if (k === "first") x[k] = x[k] ? Math.min(x[k], v) : v;
+          else if (k === "last" || k === "best" || k === "streak" || k === "learnedHere") x[k] = Math.max(x[k] || 0, v);
+          else x[k] = (x[k] || 0) + v;
+        }
+      });
+    })(out, b);
+    return out;
+  }
+  // everything known for one person: this device plus every other device's row
+  function combined(id) {
+    var s = load(id);
+    s.learnedHere = learnedCount(id);
+    sync.others(id).forEach(function (r) { s = addStats(s, r.stats); });
+    var b = blank(); for (var k in b) if (s[k] === undefined) s[k] = b[k];
+    return s;
+  }
+
+  // ------------------------------------------------------------------
   //  Totals for display
   // ------------------------------------------------------------------
   function totals(s) {
@@ -153,7 +269,7 @@
   function renderStatsPage() {
     if (!JJ.user) return;
     var id = state.viewing || JJ.user.id, acct = accountById(id) || { name: "Former account", level: "trainee" };
-    var s = load(id), t = totals(s), p = s.practice, dr = s.drill, f = s.flash;
+    var s = combined(id), t = totals(s), p = s.practice, dr = s.drill, f = s.flash;
     var mine = id === JJ.user.id;
 
     var tiles = [
@@ -162,7 +278,7 @@
       ["Wrong answers", t.pct(t.wrong), t.wrong + " answers"],
       ["Right with a hint", t.pct(t.helped), t.hints + " hint" + (t.hints === 1 ? "" : "s") + " used in all"],
       ["Practice orders", p.orders, pct(p.perfect, p.orders) + " perfect · avg " + (p.orders - p.gaveUp ? fmtDur(p.time / (p.orders - p.gaveUp)) : "–")],
-      ["Items learned", learnedCount(id), "known 3 times in a row (Find it / Flashcards)"],
+      ["Items learned", s.learnedHere || 0, "known 3 times in a row (Find it / Flashcards)"],
     ];
 
     // last 14 days of active time
@@ -185,10 +301,10 @@
         "<div class='muted'>" + esc(LEVELS[acct.level] || "") + " · first used " + fmtDate(s.first) + " · last seen " + fmtDate(s.last) +
         " · " + s.sessions + " sign-in" + (s.sessions === 1 ? "" : "s") + "</div></div>" +
         "<div class='st-actions'>" +
-          (mine ? "<button class='tbtn' id='st-copy'>Copy my stats code</button>" : "<button class='tbtn' id='st-back'>Back to my stats</button>") +
+          (mine ? (sync.on ? "" : "<button class='tbtn' id='st-copy'>Copy my stats code</button>") : "<button class='tbtn' id='st-back'>Back to my stats</button>") +
           "<button class='tbtn danger-fill' id='st-reset'>Reset " + (mine ? "my" : "these") + " stats</button>" +
         "</div>" +
-        "<div class='st-confirm hidden' id='st-confirm'>Erase " + (mine ? "your" : esc(acct.name) + "'s") + " stats on this device? This can't be undone. " +
+        "<div class='st-confirm hidden' id='st-confirm'>Erase " + (mine ? "your" : esc(acct.name) + "'s") + " stats" + (sync.on ? " on every device" : " on this device") + "? This can't be undone. " +
           "<button class='tbtn danger-fill' id='st-yes'>Erase</button> <button class='tbtn' id='st-no'>Keep</button></div>" +
         "<textarea class='st-code hidden' id='st-code' readonly></textarea>" +
       "</section>" +
@@ -228,7 +344,7 @@
       "</section>";
 
     $("stats-page").innerHTML = html;
-    if (mine) $("st-copy").onclick = function () {
+    if (mine && $("st-copy")) $("st-copy").onclick = function () {
       var box = $("st-code");
       box.value = "JJSTATS1:" + btoa(unescape(encodeURIComponent(JSON.stringify({ id: id, name: acct.name, stats: s }))));
       box.classList.remove("hidden");
@@ -236,11 +352,12 @@
       var done = function () { JJ.toast("Stats code copied. Send it to the admin."); };
       try { navigator.clipboard.writeText(box.value).then(done, function () { JJ.toast("Select the code and copy it"); }); } catch (e) { JJ.toast("Select the code and copy it"); }
     };
-    else $("st-back").onclick = function () { state.viewing = null; renderStatsPage(); };
+    else if (!mine) $("st-back").onclick = function () { state.viewing = null; renderStatsPage(); };
     $("st-reset").onclick = function () { $("st-confirm").classList.remove("hidden"); };
     $("st-no").onclick = function () { $("st-confirm").classList.add("hidden"); };
     $("st-yes").onclick = function () {
       try { localStorage.removeItem(key(id)); localStorage.removeItem("jj-learn:" + id); } catch (e) {}
+      sync.reset(id);
       if (mine) JJ.reloadLearn();
       renderStatsPage();
     };
@@ -270,7 +387,7 @@
           : "Changes saved here work on <b>this device</b> right away. To make them work everywhere, open the site with start.bat and press Save and publish, or ask Claude to publish them.") + "</p>" +
         "<div class='st-table-wrap'><table class='st-table ad-table'><tr><th>Name</th><th>Level</th><th>Code</th><th>Active</th><th>Stats here</th><th></th></tr>" +
         accts.map(function (a, i) {
-          var s = load(a.id), t = totals(s);
+          var s = combined(a.id), t = totals(s);
           return "<tr data-i='" + i + "'>" +
             "<td><input class='ad-name' value='" + esc(a.name) + "' aria-label='Name'></td>" +
             "<td>" + (a.owner ? "Admin (owner)" : "<select class='ad-level' aria-label='Level'>" +
@@ -292,13 +409,16 @@
         }).join("") + "</select> without use (also asks on every page load)</label>" +
       "</section>" +
 
-      "<section class='st-card'><h2>Everyone's stats on this device</h2>" + statsTable() +
-        "<h3>Add stats from another device</h3><p class='muted st-small'>On their device, the person opens <b>Stats</b>, presses <b>Copy my stats code</b> and sends it to you. Paste it here; it replaces the stats this device has for them.</p>" +
-        "<div class='ad-add'><textarea id='ad-import' placeholder='Paste a stats code (starts with JJSTATS1:)'></textarea><button class='tbtn primary' id='ad-import-btn'>Add stats</button></div>" +
+      "<section class='st-card'><h2>Everyone's stats" + (sync.on ? "" : " on this device") + "</h2>" +
+        "<p class='muted st-small'>" + (sync.on
+          ? "Synced with the Google Sheet: every device's numbers are added together (" + ({ ok: "up to date", offline: "can't reach the Sheet right now; showing the last copy", waiting: "connecting…" })[sync.status()] + ")."
+          : "Sync is off, so this only shows stats made on this device.") + "</p>" + statsTable() +
+        (sync.on ? "" : "<h3>Add stats from another device</h3><p class='muted st-small'>On their device, the person opens <b>Stats</b>, presses <b>Copy my stats code</b> and sends it to you. Paste it here; it replaces the stats this device has for them.</p>" +
+        "<div class='ad-add'><textarea id='ad-import' placeholder='Paste a stats code (starts with JJSTATS1:)'></textarea><button class='tbtn primary' id='ad-import-btn'>Add stats</button></div>") +
       "</section>" +
 
       "<section class='st-card'><h2>This device</h2>" +
-        "<p class='muted st-small'>Removes every person's stats and learning progress saved in this browser. Accounts are not affected.</p>" +
+        "<p class='muted st-small'>Removes every person's stats and learning progress saved in this browser" + (sync.on ? " (and this device's share in the Google Sheet)" : "") + ". Accounts are not affected.</p>" +
         "<button class='tbtn danger-fill' id='ad-wipe'>Clear all stats on this device</button>" +
         "<span class='st-confirm hidden' id='ad-wipe-confirm'> Really clear everything? <button class='tbtn danger-fill' id='ad-wipe-yes'>Clear</button> <button class='tbtn' id='ad-wipe-no'>Cancel</button></span>" +
       "</section>";
@@ -330,14 +450,15 @@
     $("ad-idle").onchange = function () { draft.settings.idleMinutes = +this.value; setDirty(true); };
     $("ad-publish").onclick = saveAccounts;
     if ($("ad-discard")) $("ad-discard").onclick = function () { draft = cloneConfig(); setDirty(false); };
-    $("ad-import-btn").onclick = importStats;
+    if ($("ad-import-btn")) $("ad-import-btn").onclick = importStats;
     $("ad-wipe").onclick = function () { $("ad-wipe-confirm").classList.remove("hidden"); };
     $("ad-wipe-no").onclick = function () { $("ad-wipe-confirm").classList.add("hidden"); };
     $("ad-wipe-yes").onclick = function () {
       try {
         Object.keys(localStorage).filter(function (k) { return /^jj-(ustats|learn)[:]/.test(k) || k === "jj-learn" || k === "jj-stats"; })
-          .forEach(function (k) { localStorage.removeItem(k); });
+          .forEach(function (k) { var m = /^jj-ustats:(.+)$/.exec(k); if (m) sync.changed(m[1]); localStorage.removeItem(k); });
       } catch (e) {}
+      sync.push(false);
       JJ.reloadLearn();
       JJ.toast("All stats on this device cleared");
       renderAdmin();
@@ -351,11 +472,12 @@
     var ids = {};
     JJ.config().accounts.forEach(function (a) { ids[a.id] = a.name; });
     try { Object.keys(localStorage).forEach(function (k) { var m = /^jj-ustats:(.+)$/.exec(k); if (m && !ids[m[1]]) ids[m[1]] = "Removed account (" + m[1] + ")"; }); } catch (e) {}
+    sync.ids().forEach(function (id) { if (!ids[id]) ids[id] = "Removed account (" + (sync.nameOf(id) || id) + ")"; });
     var rows = Object.keys(ids).map(function (id) {
-      var s = load(id), t = totals(s);
+      var s = combined(id), t = totals(s);
       return "<tr><th><button class='linkish st-view-row' data-id='" + esc(id) + "'>" + esc(ids[id]) + "</button></th><td>" + fmtDur(s.time.total) +
         "</td><td>" + s.practice.orders + "</td><td>" + t.pct(t.right) + "</td><td>" + t.pct(t.helped) + "</td><td>" + t.pct(t.wrong) +
-        "</td><td>" + t.hints + "</td><td>" + learnedCount(id) + "</td><td>" + (s.sessions ? fmtDate(s.last) : "–") + "</td></tr>";
+        "</td><td>" + t.hints + "</td><td>" + (s.learnedHere || 0) + "</td><td>" + (s.sessions ? fmtDate(s.last) : "–") + "</td></tr>";
     });
     return "<div class='st-table-wrap'><table class='st-table'><tr><th>Person</th><th>Time</th><th>Orders</th><th>Right</th><th>Hint</th><th>Wrong</th><th>Hints</th><th>Learned</th><th>Last seen</th></tr>" +
       rows.join("") + "</table></div>";
@@ -445,6 +567,7 @@
   document.addEventListener("jj-login", function (e) {
     var u = e.detail.user;
     update(function (s) { s.sessions++; });
+    sync.pull(false);
     applyLevel();
     if (e.detail.changed) {
       state.viewing = null; draft = null; dirty = false;
@@ -460,6 +583,10 @@
     state.mode = mode;
     if (mode === "stats") renderStatsPage();
     if (mode === "admin") renderAdmin();
+    if (mode === "stats" || mode === "admin") sync.push(false).then(function () { return sync.pull(true); }).then(function () {
+      if (state.mode === "stats") renderStatsPage();
+      if (state.mode === "admin") renderAdmin();
+    });
     if (mode !== "stats") state.viewing = null;
   };
 })();
