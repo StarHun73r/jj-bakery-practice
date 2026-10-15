@@ -1,0 +1,465 @@
+// Per-person statistics and the Admin tab.
+//
+// Who is signed in comes from the lock screen (lock.js / accounts.js). Every
+// answer in Practice, Find it and Flashcards, every hint and every minute of
+// active use is recorded for that person, in this browser (localStorage key
+// "jj-ustats:<account id>"). The site has no server, so each device keeps its
+// own numbers; a person can copy a "stats code" and the admin can paste it in.
+//
+// Loaded after app.js, which shares ITEMS, esc() and setMode() through window.JJ.
+(function () {
+  var JJ = window.JJ;
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { var d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; };
+  var LEVELS = { admin: "Admin", trainer: "Trainer", trainee: "Trainee" };
+  var LEVEL_NOTE = {
+    admin: "Everything, including this Admin tab",
+    trainer: "All modes, including Photos (adding and replacing photos)",
+    trainee: "All practice modes and the Sheet, but not Photos",
+  };
+
+  // ------------------------------------------------------------------
+  //  Recording
+  // ------------------------------------------------------------------
+  function blank() {
+    return {
+      first: Date.now(), last: Date.now(), sessions: 0,
+      time: { total: 0, days: {} },
+      practice: { orders: 0, perfect: 0, helped: 0, wrongOrders: 0, wrongChecks: 0, wrongCard: 0,
+                  gaveUp: 0, hints: 0, time: 0, items: 0, streak: 0, best: 0 },
+      drill: { found: 0, clean: 0, helped: 0, wrong: 0, wrongTaps: 0, skips: 0, time: 0, streak: 0, best: 0 },
+      flash: { got: 0, missed: 0 },
+      items: {},   // id -> { r: right, w: wrong, h: with a hint }
+    };
+  }
+  function key(id) { return "jj-ustats:" + id; }
+  function load(id) {
+    try {
+      var s = JSON.parse(localStorage.getItem(key(id)));
+      if (s) { var b = blank(); for (var k in b) if (s[k] === undefined) s[k] = b[k]; return s; }
+    } catch (e) {}
+    return blank();
+  }
+  function save(id, s) { try { localStorage.setItem(key(id), JSON.stringify(s)); } catch (e) {} }
+  function today(t) { var d = new Date(t || Date.now()); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+
+  function update(fn) {
+    if (!JJ.user) return;
+    var s = load(JJ.user.id);
+    fn(s);
+    s.last = Date.now();
+    save(JJ.user.id, s);
+  }
+  function itemMark(s, id, kind) {
+    var it = s.items[id] || (s.items[id] = { r: 0, w: 0, h: 0 });
+    it[kind]++;
+  }
+
+  // Called by app.js
+  JJ.track = function (type, d) {
+    update(function (s) {
+      var p = s.practice, dr = s.drill;
+      if (type === "order") {
+        // d: { clean, secs, wrongChecks, hinted: [ids], wrongCard, lines: [{itemId, qty}], wrongIds: [ids] }
+        p.orders++;
+        p.time += d.secs;
+        p.items += d.lines.reduce(function (a, l) { return a + l.qty; }, 0);
+        p.hints += d.hinted.length;
+        p.wrongChecks += d.wrongChecks;
+        if (d.wrongCard) p.wrongCard++;
+        if (d.clean) { p.perfect++; p.streak++; p.best = Math.max(p.best, p.streak); }
+        else {
+          p.streak = 0;
+          if (d.wrongChecks || d.wrongCard) p.wrongOrders++; else p.helped++;
+        }
+        d.lines.forEach(function (l) {
+          var id = l.itemId;
+          itemMark(s, id, d.wrongIds.indexOf(id) >= 0 ? "w" : d.hinted.indexOf(id) >= 0 ? "h" : "r");
+        });
+      } else if (type === "giveup") {
+        p.gaveUp++; p.wrongOrders++; p.orders++; p.streak = 0;
+        p.hints += d.hinted.length;
+        d.lines.forEach(function (l) { itemMark(s, l.itemId, "w"); });
+      } else if (type === "drill") {
+        // d: { id, clean, wrong, hinted, secs }
+        dr.found++; dr.time += d.secs; dr.wrongTaps += d.wrong;
+        if (d.clean) { dr.clean++; dr.streak++; dr.best = Math.max(dr.best, dr.streak); }
+        else { dr.streak = 0; if (d.wrong) dr.wrong++; else dr.helped++; }
+        itemMark(s, d.id, d.clean ? "r" : d.wrong ? "w" : "h");
+      } else if (type === "drill-skip") {
+        dr.skips++; dr.streak = 0;
+        itemMark(s, d.id, "w");
+      } else if (type === "flash") {
+        if (d.ok) s.flash.got++; else s.flash.missed++;
+        itemMark(s, d.id, d.ok ? "r" : "w");
+      }
+    });
+    if (state.mode === "stats") renderStatsPage();
+  };
+
+  // Active time: counts while signed in, the page is visible and someone
+  // has touched it in the last minute.
+  var TICK = 5;
+  setInterval(function () {
+    if (!JJ.user || JJ.isLocked() || document.visibilityState !== "visible") return;
+    if (Date.now() - JJ.lastActive() > 60000) return;
+    update(function (s) {
+      s.time.total += TICK;
+      var d = today();
+      s.time.days[d] = (s.time.days[d] || 0) + TICK;
+    });
+  }, TICK * 1000);
+
+  // ------------------------------------------------------------------
+  //  Totals for display
+  // ------------------------------------------------------------------
+  function totals(s) {
+    var p = s.practice, dr = s.drill, f = s.flash;
+    // Every answer lands in one of three groups:
+    //   right  - a perfect order, a clean Find it, a known flashcard
+    //   helped - correct, but only after a hint
+    //   wrong  - wrong check / wrong card / gave up, wrong taps or skip, missed card
+    var right = p.perfect + dr.clean + f.got;
+    var helped = p.helped + dr.helped;
+    var wrong = p.wrongOrders + dr.wrong + dr.skips + f.missed;
+    var all = right + helped + wrong;
+    return { right: right, helped: helped, wrong: wrong, all: all,
+             hints: p.hints + dr.helped,
+             pct: function (n) { return all ? Math.round(100 * n / all) + "%" : "–"; } };
+  }
+  function fmtDur(secs) {
+    secs = Math.round(secs || 0);
+    var h = Math.floor(secs / 3600), m = Math.floor(secs % 3600 / 60), s = secs % 60;
+    return h ? h + "h " + m + "m" : m ? m + "m " + s + "s" : s + "s";
+  }
+  function fmtDate(t) { return t ? new Date(t).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) : "–"; }
+  function pct(a, b) { return b ? Math.round(100 * a / b) + "%" : "–"; }
+  function learnedCount(id) {
+    try {
+      var l = JSON.parse(localStorage.getItem("jj-learn:" + id)) || {};
+      var seen = {};
+      ["drill", "flash"].forEach(function (k) { for (var i in l[k] || {}) if (l[k][i] >= 3) seen[i] = 1; });
+      return Object.keys(seen).length;
+    } catch (e) { return 0; }
+  }
+
+  // ------------------------------------------------------------------
+  //  Stats tab
+  // ------------------------------------------------------------------
+  var state = { mode: null, viewing: null };   // viewing: account id the admin opened
+
+  function accountById(id) { return JJ.config().accounts.find(function (a) { return a.id === id; }); }
+
+  function renderStatsPage() {
+    if (!JJ.user) return;
+    var id = state.viewing || JJ.user.id, acct = accountById(id) || { name: "Former account", level: "trainee" };
+    var s = load(id), t = totals(s), p = s.practice, dr = s.drill, f = s.flash;
+    var mine = id === JJ.user.id;
+
+    var tiles = [
+      ["Time on the site", fmtDur(s.time.total), "today " + fmtDur(s.time.days[today()])],
+      ["Right answers", t.pct(t.right), t.right + " of " + t.all + " answers"],
+      ["Wrong answers", t.pct(t.wrong), t.wrong + " answers"],
+      ["Right with a hint", t.pct(t.helped), t.hints + " hint" + (t.hints === 1 ? "" : "s") + " used in all"],
+      ["Practice orders", p.orders, pct(p.perfect, p.orders) + " perfect · avg " + (p.orders - p.gaveUp ? fmtDur(p.time / (p.orders - p.gaveUp)) : "–")],
+      ["Items learned", learnedCount(id), "known 3 times in a row (Find it / Flashcards)"],
+    ];
+
+    // last 14 days of active time
+    var days = [], max = 1;
+    for (var i = 13; i >= 0; i--) {
+      var d = new Date(); d.setDate(d.getDate() - i);
+      var v = s.time.days[today(d)] || 0;
+      days.push({ label: d.toLocaleDateString(undefined, { weekday: "narrow" }), date: today(d), v: v });
+      max = Math.max(max, v);
+    }
+    var maxMin = Math.max(1, Math.ceil(max / 60));
+
+    var missed = Object.keys(s.items).map(function (k) { return { id: k, it: s.items[k] }; })
+      .filter(function (x) { return x.it.w + x.it.h > 0 && JJ.items[x.id]; })
+      .sort(function (a, b) { return (b.it.w * 2 + b.it.h) - (a.it.w * 2 + a.it.h); }).slice(0, 10);
+
+    var html =
+      "<section class='st-card st-head'>" +
+        "<div><h2>" + esc(acct.name) + (mine ? "" : " <span class='muted'>(viewing)</span>") + "</h2>" +
+        "<div class='muted'>" + esc(LEVELS[acct.level] || "") + " · first used " + fmtDate(s.first) + " · last seen " + fmtDate(s.last) +
+        " · " + s.sessions + " sign-in" + (s.sessions === 1 ? "" : "s") + "</div></div>" +
+        "<div class='st-actions'>" +
+          (mine ? "<button class='tbtn' id='st-copy'>Copy my stats code</button>" : "<button class='tbtn' id='st-back'>Back to my stats</button>") +
+          "<button class='tbtn danger-fill' id='st-reset'>Reset " + (mine ? "my" : "these") + " stats</button>" +
+        "</div>" +
+        "<div class='st-confirm hidden' id='st-confirm'>Erase " + (mine ? "your" : esc(acct.name) + "'s") + " stats on this device? This can't be undone. " +
+          "<button class='tbtn danger-fill' id='st-yes'>Erase</button> <button class='tbtn' id='st-no'>Keep</button></div>" +
+        "<textarea class='st-code hidden' id='st-code' readonly></textarea>" +
+      "</section>" +
+      "<div class='st-tiles'>" + tiles.map(function (x) {
+        return "<div class='st-tile'><div class='st-label'>" + x[0] + "</div><div class='st-num'>" + x[1] + "</div><div class='muted'>" + x[2] + "</div></div>";
+      }).join("") + "</div>" +
+
+      "<section class='st-card'><h3>Answers</h3>" +
+        "<div class='st-split' role='img' aria-label='Right " + t.pct(t.right) + ", with a hint " + t.pct(t.helped) + ", wrong " + t.pct(t.wrong) + "'>" +
+          (t.all ? ["right", "helped", "wrong"].map(function (k) { return t[k] ? "<span class='st-" + k + "' style='flex:" + t[k] + "'></span>" : ""; }).join("") : "<span class='st-empty'></span>") +
+        "</div>" +
+        "<div class='st-legend'><span><i class='st-right'></i>Right " + t.pct(t.right) + "</span><span><i class='st-helped'></i>With a hint " + t.pct(t.helped) +
+        "</span><span><i class='st-wrong'></i>Wrong " + t.pct(t.wrong) + "</span></div>" +
+      "</section>" +
+
+      "<section class='st-card'><h3>By mode</h3><div class='st-table-wrap'><table class='st-table'>" +
+        "<tr><th></th><th>Done</th><th>Right</th><th>With hint</th><th>Wrong</th><th>Avg time</th><th>Best streak</th></tr>" +
+        "<tr><th>Practice orders</th><td>" + p.orders + "</td><td>" + pct(p.perfect, p.orders) + "</td><td>" + pct(p.helped, p.orders) +
+          "</td><td>" + pct(p.wrongOrders, p.orders) + "</td><td>" + (p.orders - p.gaveUp ? fmtDur(p.time / (p.orders - p.gaveUp)) : "–") + "</td><td>" + p.best + "</td></tr>" +
+        "<tr><th>Find it</th><td>" + (dr.found + dr.skips) + "</td><td>" + pct(dr.clean, dr.found + dr.skips) + "</td><td>" + pct(dr.helped, dr.found + dr.skips) +
+          "</td><td>" + pct(dr.wrong + dr.skips, dr.found + dr.skips) + "</td><td>" + (dr.found ? (dr.time / dr.found).toFixed(1) + "s" : "–") + "</td><td>" + dr.best + "</td></tr>" +
+        "<tr><th>Flashcards</th><td>" + (f.got + f.missed) + "</td><td>" + pct(f.got, f.got + f.missed) + "</td><td>–</td><td>" + pct(f.missed, f.got + f.missed) + "</td><td>–</td><td>–</td></tr>" +
+      "</table></div>" +
+      "<p class='muted st-small'>Practice: " + p.items + " items rung up · " + p.wrongChecks + " wrong order checks · " + p.wrongCard + " wrong card types · " +
+        p.gaveUp + " gave up · " + p.hints + " \"Where is it?\" hints. Find it: " + dr.wrongTaps + " wrong taps · " + dr.skips + " skipped.</p></section>" +
+
+      "<section class='st-card'><h3>Active time, last 14 days <span class='muted'>(minutes)</span></h3>" +
+        "<div class='st-bars'><div class='st-axis'><span>" + maxMin + "</span><span>0</span></div>" +
+        days.map(function (d) {
+          return "<div class='st-bar' title='" + d.date + ": " + fmtDur(d.v) + "'><div class='st-fill' style='height:" + (100 * d.v / (maxMin * 60)).toFixed(1) + "%'></div><span>" + d.label + "</span></div>";
+        }).join("") + "</div></section>" +
+
+      "<section class='st-card'><h3>Items to work on</h3>" +
+        (missed.length ? "<ol class='st-missed'>" + missed.map(function (x) {
+          return "<li><span>" + esc(JJ.items[x.id].full) + "</span><span class='muted'>" + x.it.w + " wrong · " + x.it.h + " with hint · " + x.it.r + " right</span></li>";
+        }).join("") + "</ol>" : "<p class='muted'>Nothing missed yet. Items you get wrong or need a hint for show up here.</p>") +
+      "</section>";
+
+    $("stats-page").innerHTML = html;
+    if (mine) $("st-copy").onclick = function () {
+      var box = $("st-code");
+      box.value = "JJSTATS1:" + btoa(unescape(encodeURIComponent(JSON.stringify({ id: id, name: acct.name, stats: s }))));
+      box.classList.remove("hidden");
+      box.select();
+      var done = function () { JJ.toast("Stats code copied. Send it to the admin."); };
+      try { navigator.clipboard.writeText(box.value).then(done, function () { JJ.toast("Select the code and copy it"); }); } catch (e) { JJ.toast("Select the code and copy it"); }
+    };
+    else $("st-back").onclick = function () { state.viewing = null; renderStatsPage(); };
+    $("st-reset").onclick = function () { $("st-confirm").classList.remove("hidden"); };
+    $("st-no").onclick = function () { $("st-confirm").classList.add("hidden"); };
+    $("st-yes").onclick = function () {
+      try { localStorage.removeItem(key(id)); localStorage.removeItem("jj-learn:" + id); } catch (e) {}
+      if (mine) JJ.reloadLearn();
+      renderStatsPage();
+    };
+  }
+
+  // ------------------------------------------------------------------
+  //  Admin tab
+  // ------------------------------------------------------------------
+  var draft = null, dirty = false, server = false;
+
+  function cloneConfig() { return JSON.parse(JSON.stringify(JJ.config())); }
+  function setDirty(v) { dirty = v; renderAdmin(); }
+
+  function renderAdmin() {
+    if (!JJ.user || JJ.user.level !== "admin") return;
+    if (!draft) draft = cloneConfig();
+    var accts = draft.accounts;
+    var html =
+      "<section class='st-card'><div class='ad-head'><h2>Accounts</h2>" +
+        "<div class='ad-save'>" +
+          (dirty ? "<span class='ad-dirty'>Unsaved changes</span>" : "<span class='muted'>All changes saved</span>") +
+          (dirty ? " <button class='tbtn' id='ad-discard'>Discard</button>" : "") +
+          " <button class='tbtn primary' id='ad-publish'" + (dirty ? "" : " disabled") + ">" + (server ? "Save and publish" : "Save on this device") + "</button>" +
+        "</div></div>" +
+        "<p class='muted st-small'>" + (server
+          ? "Running through the local app: <b>Save and publish</b> updates the website for everyone (GitHub Pages refreshes in about a minute)."
+          : "Changes saved here work on <b>this device</b> right away. To make them work everywhere, open the site with start.bat and press Save and publish, or ask Claude to publish them.") + "</p>" +
+        "<div class='st-table-wrap'><table class='st-table ad-table'><tr><th>Name</th><th>Level</th><th>Code</th><th>Active</th><th>Stats here</th><th></th></tr>" +
+        accts.map(function (a, i) {
+          var s = load(a.id), t = totals(s);
+          return "<tr data-i='" + i + "'>" +
+            "<td><input class='ad-name' value='" + esc(a.name) + "' aria-label='Name'></td>" +
+            "<td>" + (a.owner ? "Admin (owner)" : "<select class='ad-level' aria-label='Level'>" +
+              Object.keys(LEVELS).map(function (l) { return "<option value='" + l + "'" + (l === a.level ? " selected" : "") + ">" + LEVELS[l] + "</option>"; }).join("") + "</select>") + "</td>" +
+            "<td>" + (a.owner ? "<span class='muted'>↑↑↓↓←→←→</span>" : "<button class='tbtn ad-code'>Set new code</button>") + "</td>" +
+            "<td>" + (a.owner ? "✓" : "<input type='checkbox' class='ad-active'" + (a.active ? " checked" : "") + " aria-label='Active'>") + "</td>" +
+            "<td><button class='linkish ad-view'>" + fmtDur(s.time.total) + " · " + t.pct(t.right) + " right</button></td>" +
+            "<td>" + (a.owner ? "" : "<button class='tbtn danger-fill ad-del'>Remove</button>") + "</td></tr>";
+        }).join("") + "</table></div>" +
+        "<div class='ad-levels muted st-small'>" + Object.keys(LEVELS).map(function (l) { return "<b>" + LEVELS[l] + ":</b> " + LEVEL_NOTE[l]; }).join(" &nbsp;·&nbsp; ") + "</div>" +
+        "<div class='ad-add'><input id='ad-new-name' placeholder='New person’s name' aria-label='New person name'>" +
+          "<select id='ad-new-level' aria-label='Level'>" + Object.keys(LEVELS).map(function (l) { return "<option value='" + l + "'" + (l === "trainee" ? " selected" : "") + ">" + LEVELS[l] + "</option>"; }).join("") + "</select>" +
+          "<button class='tbtn primary' id='ad-add'>Add person and pick their code</button></div>" +
+      "</section>" +
+
+      "<section class='st-card'><h2>Settings</h2>" +
+        "<label class='ad-row'>Lock after <select id='ad-idle'>" + [1, 2, 3, 5, 10, 15, 30].map(function (m) {
+          return "<option value='" + m + "'" + (m === +(draft.settings.idleMinutes || 5) ? " selected" : "") + ">" + m + " minute" + (m > 1 ? "s" : "") + "</option>";
+        }).join("") + "</select> without use (also asks on every page load)</label>" +
+      "</section>" +
+
+      "<section class='st-card'><h2>Everyone's stats on this device</h2>" + statsTable() +
+        "<h3>Add stats from another device</h3><p class='muted st-small'>On their device, the person opens <b>Stats</b>, presses <b>Copy my stats code</b> and sends it to you. Paste it here; it replaces the stats this device has for them.</p>" +
+        "<div class='ad-add'><textarea id='ad-import' placeholder='Paste a stats code (starts with JJSTATS1:)'></textarea><button class='tbtn primary' id='ad-import-btn'>Add stats</button></div>" +
+      "</section>" +
+
+      "<section class='st-card'><h2>This device</h2>" +
+        "<p class='muted st-small'>Removes every person's stats and learning progress saved in this browser. Accounts are not affected.</p>" +
+        "<button class='tbtn danger-fill' id='ad-wipe'>Clear all stats on this device</button>" +
+        "<span class='st-confirm hidden' id='ad-wipe-confirm'> Really clear everything? <button class='tbtn danger-fill' id='ad-wipe-yes'>Clear</button> <button class='tbtn' id='ad-wipe-no'>Cancel</button></span>" +
+      "</section>";
+    $("admin-page").innerHTML = html;
+
+    var rows = $("admin-page").querySelectorAll(".ad-table tr[data-i]");
+    rows.forEach(function (tr) {
+      var a = accts[+tr.dataset.i];
+      tr.querySelector(".ad-name").onchange = function () { a.name = this.value.trim() || a.name; setDirty(true); };
+      var lv = tr.querySelector(".ad-level"); if (lv) lv.onchange = function () { a.level = this.value; setDirty(true); };
+      var ac = tr.querySelector(".ad-active"); if (ac) ac.onchange = function () { a.active = this.checked; setDirty(true); };
+      var cd = tr.querySelector(".ad-code"); if (cd) cd.onclick = function () { pickCode(a.name, a.hash, function (h) { a.hash = h; setDirty(true); }); };
+      var dl = tr.querySelector(".ad-del"); if (dl) dl.onclick = function () {
+        if (dl.dataset.sure) { accts.splice(accts.indexOf(a), 1); setDirty(true); }
+        else { dl.dataset.sure = 1; dl.textContent = "Tap again to remove"; }
+      };
+      tr.querySelector(".ad-view").onclick = function () { state.viewing = a.id; JJ.setMode("stats"); };
+    });
+    $("ad-add").onclick = function () {
+      var name = $("ad-new-name").value.trim(), level = $("ad-new-level").value;
+      if (!name) { JJ.toast("Type their name first"); $("ad-new-name").focus(); return; }
+      pickCode(name, null, function (h) {
+        var id = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 20) || "person";
+        while (accts.some(function (x) { return x.id === id; })) id += "-" + Math.floor(Math.random() * 90 + 10);
+        accts.push({ id: id, name: name, level: level, hash: h, active: true });
+        setDirty(true);
+      });
+    };
+    $("ad-idle").onchange = function () { draft.settings.idleMinutes = +this.value; setDirty(true); };
+    $("ad-publish").onclick = saveAccounts;
+    if ($("ad-discard")) $("ad-discard").onclick = function () { draft = cloneConfig(); setDirty(false); };
+    $("ad-import-btn").onclick = importStats;
+    $("ad-wipe").onclick = function () { $("ad-wipe-confirm").classList.remove("hidden"); };
+    $("ad-wipe-no").onclick = function () { $("ad-wipe-confirm").classList.add("hidden"); };
+    $("ad-wipe-yes").onclick = function () {
+      try {
+        Object.keys(localStorage).filter(function (k) { return /^jj-(ustats|learn)[:]/.test(k) || k === "jj-learn" || k === "jj-stats"; })
+          .forEach(function (k) { localStorage.removeItem(k); });
+      } catch (e) {}
+      JJ.reloadLearn();
+      JJ.toast("All stats on this device cleared");
+      renderAdmin();
+    };
+    $("admin-page").querySelectorAll(".st-view-row").forEach(function (b) {
+      b.onclick = function () { state.viewing = b.dataset.id; JJ.setMode("stats"); };
+    });
+  }
+
+  function statsTable() {
+    var ids = {};
+    JJ.config().accounts.forEach(function (a) { ids[a.id] = a.name; });
+    try { Object.keys(localStorage).forEach(function (k) { var m = /^jj-ustats:(.+)$/.exec(k); if (m && !ids[m[1]]) ids[m[1]] = "Removed account (" + m[1] + ")"; }); } catch (e) {}
+    var rows = Object.keys(ids).map(function (id) {
+      var s = load(id), t = totals(s);
+      return "<tr><th><button class='linkish st-view-row' data-id='" + esc(id) + "'>" + esc(ids[id]) + "</button></th><td>" + fmtDur(s.time.total) +
+        "</td><td>" + s.practice.orders + "</td><td>" + t.pct(t.right) + "</td><td>" + t.pct(t.helped) + "</td><td>" + t.pct(t.wrong) +
+        "</td><td>" + t.hints + "</td><td>" + learnedCount(id) + "</td><td>" + (s.sessions ? fmtDate(s.last) : "–") + "</td></tr>";
+    });
+    return "<div class='st-table-wrap'><table class='st-table'><tr><th>Person</th><th>Time</th><th>Orders</th><th>Right</th><th>Hint</th><th>Wrong</th><th>Hints</th><th>Learned</th><th>Last seen</th></tr>" +
+      rows.join("") + "</table></div>";
+  }
+
+  function importStats() {
+    var txt = $("ad-import").value.trim();
+    try {
+      if (txt.indexOf("JJSTATS1:") !== 0) throw 0;
+      var data = JSON.parse(decodeURIComponent(escape(atob(txt.slice(9)))));
+      if (!data.id || !data.stats) throw 0;
+      save(data.id, data.stats);
+      $("ad-import").value = "";
+      JJ.toast("Added stats for " + (data.name || data.id));
+      renderAdmin();
+    } catch (e) { JJ.toast("That doesn't look like a stats code"); }
+  }
+
+  // Arrow-pad popup to choose a code. Calls done(hash) once a new, unused code is entered twice.
+  function pickCode(name, oldHash, done) {
+    var first = null, entered = [];
+    var ov = $("code-overlay");
+    function draw(msg) {
+      $("code-title").textContent = "Code for " + name;
+      $("code-msg").textContent = msg || (first ? "Enter the same 8 arrows again to confirm." : "Enter 8 arrows for their new code.");
+      $("code-dots").innerHTML = Array.from({ length: 8 }, function (_, i) { return "<span" + (i < entered.length ? " class='on'" : "") + "></span>"; }).join("");
+    }
+    function press(d) {
+      if (entered.length >= 8) return;
+      entered.push(d);
+      draw();
+      if (entered.length < 8) return;
+      var h = JJ.codeHash(entered);
+      entered = [];
+      if (!first) {
+        var taken = draft.accounts.some(function (a) { return a.hash === h && a.hash !== oldHash; });
+        if (taken) { draw("Someone already uses that code. Try a different one."); return; }
+        first = h; draw();
+      } else if (h !== first) { first = null; draw("The two didn't match. Start again."); }
+      else { close(); done(h); JJ.toast("Code set for " + name + ". Remember to save."); }
+    }
+    function key(e) {
+      var map = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right" };
+      if (map[e.key]) { e.preventDefault(); e.stopPropagation(); if (!e.repeat) press(map[e.key]); }
+      else if (e.key === "Escape") close();
+    }
+    function close() { ov.classList.add("hidden"); document.removeEventListener("keydown", key, true); }
+    ov.querySelectorAll("[data-dir]").forEach(function (b) { b.onclick = function () { press(b.dataset.dir); }; });
+    $("code-clear").onclick = function () { entered = []; first = null; draw(); };
+    $("code-cancel").onclick = close;
+    document.addEventListener("keydown", key, true);
+    ov.classList.remove("hidden");
+    draw();
+  }
+
+  function saveAccounts() {
+    draft.rev = Math.max(draft.rev || 0, (window.JJ_ACCOUNTS || {}).rev || 0) + 1;
+    var done = function (msg) { setDirty(false); JJ.toast(msg); };
+    if (!server) {
+      try { localStorage.setItem("jj-accounts-draft", JSON.stringify(draft)); } catch (e) {}
+      return done("Saved on this device");
+    }
+    $("ad-publish").disabled = true;
+    $("ad-publish").textContent = "Publishing…";
+    fetch("/api/save-accounts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(draft) })
+      .then(function (r) { return r.json(); })
+      .then(function (r) {
+        if (r.ok) { window.JJ_ACCOUNTS = JSON.parse(JSON.stringify(draft)); try { localStorage.removeItem("jj-accounts-draft"); } catch (e) {} }
+        else try { localStorage.setItem("jj-accounts-draft", JSON.stringify(draft)); } catch (e) {}
+        done(r.message);
+      })
+      .catch(function () { try { localStorage.setItem("jj-accounts-draft", JSON.stringify(draft)); } catch (e) {} done("Couldn't reach the local app. Saved on this device."); });
+  }
+
+  // ------------------------------------------------------------------
+  //  Wiring
+  // ------------------------------------------------------------------
+  fetch("api/status").then(function (r) { return r.json(); }).then(function (r) { server = !!r.server; }).catch(function () {});
+
+  // Tabs each level may use
+  function applyLevel() {
+    var lv = JJ.user ? JJ.user.level : "trainee";
+    document.body.classList.toggle("is-admin", lv === "admin");
+    document.body.classList.toggle("no-photos", lv === "trainee");
+    $("whoami").textContent = JJ.user ? JJ.user.name : "";
+  }
+  document.addEventListener("jj-login", function (e) {
+    var u = e.detail.user;
+    update(function (s) { s.sessions++; });
+    applyLevel();
+    if (e.detail.changed) {
+      state.viewing = null; draft = null; dirty = false;
+      JJ.reloadLearn();
+      var m = JJ.mode();
+      if ((m === "admin" && u.level !== "admin") || (m === "photos" && u.level === "trainee")) JJ.setMode("register");
+      else if (m === "stats" || m === "admin") JJ.setMode(m);
+    }
+  });
+  $("signout").onclick = function () { JJ.lockNow(); };
+
+  JJ.onMode = function (mode) {
+    state.mode = mode;
+    if (mode === "stats") renderStatsPage();
+    if (mode === "admin") renderAdmin();
+    if (mode !== "stats") state.viewing = null;
+  };
+})();

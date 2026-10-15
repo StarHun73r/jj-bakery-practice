@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>JJ Bakery Register Practice</title>
-  <link rel="stylesheet" href="css/style.css?v=b74c8761">
+  <link rel="stylesheet" href="css/style.css?v=7e7f3f54">
   <link rel="stylesheet" href="css/lock.css?v=63475cd5">
 </head>
 <body>
@@ -23,7 +23,8 @@
       </div>
     </div>
   </div>
-  <script src="js/lock.js?v=506eb995"></script>
+  <script src="js/accounts.js?v=98f36406"></script>
+  <script src="js/lock.js?v=48f83543"></script>
   <!-- Practice toolbar (not part of the real register) -->
   <div class="trainer">
     <strong id="brand">JJ Bakery</strong>
@@ -35,7 +36,10 @@
       <button class="mode-btn" data-mode="cases">Cases</button>
       <button class="mode-btn" data-mode="photos">Photos</button>
       <button class="mode-btn" data-mode="sheet">Sheet</button>
+      <button class="mode-btn" data-mode="stats">Stats</button>
+      <button class="mode-btn admin-only" data-mode="admin">Admin</button>
     </div>
+    <span class="who"><span id="whoami"></span> <button class="tool-btn" id="signout" title="Lock the site; the next person signs in with their code">Sign out</button></span>
     <div class="trainer-tools study-only">
       <label class="chk">Deck
         <select id="deck"><option value="all">Everything</option></select>
@@ -179,6 +183,10 @@
     <!-- ================= flashcards ================= -->
     <!-- ================= display cases ================= -->
     <section class="cases-panel cases-only" id="cases-list"></section>
+
+    <!-- ================= stats / admin (js/stats.js) ================= -->
+    <section class="stats-panel stats-only" id="stats-page"></section>
+    <section class="stats-panel admin-only-panel" id="admin-page"></section>
 
     <!-- ================= reference sheet ================= -->
     <section class="sheet-panel sheet-only" hidden>
@@ -331,6 +339,23 @@
 
   <div class="zoom hidden" id="zoom"><img alt=""></div>
 
+  <!-- Admin: choose an arrow code for someone -->
+  <div class="overlay hidden" id="code-overlay">
+    <div class="modal small code-modal">
+      <h2 id="code-title">Code</h2>
+      <p class="muted" id="code-msg"></p>
+      <div class="lock-dots code-dots" id="code-dots"></div>
+      <div class="lock-pad">
+        <button data-dir="up" aria-label="Up">&#9650;</button>
+        <button data-dir="left" aria-label="Left">&#9664;</button>
+        <button data-dir="down" aria-label="Down">&#9660;</button>
+        <button data-dir="right" aria-label="Right">&#9654;</button>
+        <button class="lock-clear" id="code-clear">Clear</button>
+      </div>
+      <div class="modal-foot"><button class="tbtn" id="code-cancel">Cancel</button></div>
+    </div>
+  </div>
+
   <div class="toast hidden" id="toast"></div>
 
   <script src="js/menu-data.js?v=476891c9"></script>
@@ -339,6 +364,7 @@
   <script src="js/full-names.js?v=898ceee8"></script>
   <script src="js/display-cases.js?v=c91b8c8c"></script>
   <script src="js/notes.js?v=48db5188"></script>
-  <script src="js/app.js?v=7db2e14e"></script>
+  <script src="js/app.js?v=f6957051"></script>
+  <script src="js/stats.js?v=af659671"></script>
 </body>
 </html>

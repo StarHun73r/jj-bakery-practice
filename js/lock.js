@@ -1,18 +1,16 @@
-// Lock screen: the site stays covered until the 8-arrow code is entered,
+// Lock screen: the site stays covered until someone enters their 8-arrow code,
 // with the keyboard arrows or the on-screen arrow buttons (for iPads/phones).
-// It asks again on every page load and after IDLE_MINUTES with no taps,
-// clicks, keys or scrolling. Whatever was on screen stays as it was underneath.
+// The code decides who is signed in (accounts.js), which tabs they get and
+// whose stats are recorded. It asks again on every page load and after the
+// idle time set in the Admin tab. Whatever was on screen stays underneath.
 //
 // Against guessing: all 8 arrows are entered first and only then checked, so a
-// wrong try never shows which arrow was wrong (65,536 possible codes). The code
-// itself isn't written here, only a hash of it (lockHash below).
-// To change the code: node -e "<lockHash function>; console.log(lockHash('jj-bakery|up,down,...'))"
-// and put the result in CODE_HASH.
+// wrong try never shows which arrow was wrong (65,536 possible codes). Only a
+// hash of each code is stored.
 // Note: this only hides the page; the files themselves are still public.
 (function () {
-  var CODE_HASH = "8d9bb775", LENGTH = 8;
+  var LENGTH = 8;
   var KEYS = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right" };
-  var IDLE_MINUTES = 5;
   var lock = document.getElementById("lock"), dots = document.getElementById("lock-dots");
   var entered = [], locked = false, lastActive = Date.now();
 
@@ -24,6 +22,24 @@
     }
     return x.toString(16);
   }
+  function codeHash(dirs) { return lockHash("jj-bakery|" + dirs.join(",")); }
+
+  // Published accounts, or newer changes the admin saved in this browser
+  // (used when the site isn't running through the local app to publish them).
+  function config() {
+    var pub = window.JJ_ACCOUNTS || { rev: 0, settings: {}, accounts: [] };
+    try {
+      var draft = JSON.parse(localStorage.getItem("jj-accounts-draft"));
+      if (draft && draft.rev > pub.rev) return draft;
+    } catch (e) {}
+    return pub;
+  }
+
+  window.JJ = window.JJ || {};
+  JJ.codeHash = codeHash;
+  JJ.config = config;
+  JJ.user = null;
+
   function drawDots() {
     var html = "";
     for (var i = 0; i < LENGTH; i++) html += "<span" + (i < entered.length ? " class='on'" : "") + "></span>";
@@ -37,12 +53,16 @@
     lock.hidden = false;
     document.body.classList.add("locked");
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    document.dispatchEvent(new CustomEvent("jj-lock"));
   }
-  function unlock() {
+  function unlock(acct) {
+    var changed = !JJ.user || JJ.user.id !== acct.id;
+    JJ.user = acct;
     locked = false;
     lock.hidden = true;
     document.body.classList.remove("locked");
     lastActive = Date.now();
+    document.dispatchEvent(new CustomEvent("jj-login", { detail: { user: acct, changed: changed } }));
   }
   function clearEntry() { entered = []; drawDots(); }
   function press(dir) {
@@ -51,9 +71,10 @@
     drawDots();
     if (entered.length < LENGTH) return;
     // all 8 in: check the whole code at once
-    var ok = lockHash("jj-bakery|" + entered.join(",")) === CODE_HASH;
+    var h = codeHash(entered);
     entered = [];
-    if (ok) { unlock(); return; }
+    var acct = config().accounts.find(function (a) { return a.hash === h && a.active; });
+    if (acct) { unlock(acct); return; }
     lock.classList.remove("wrong");
     void lock.offsetWidth;
     lock.classList.add("wrong");
@@ -78,7 +99,11 @@
   ["pointerdown", "keydown", "wheel", "scroll", "touchstart", "mousemove"].forEach(function (ev) {
     document.addEventListener(ev, function () { if (!locked) lastActive = Date.now(); }, { capture: true, passive: true });
   });
-  function checkIdle() { if (!locked && Date.now() - lastActive > IDLE_MINUTES * 60000) lockNow(); }
+  JJ.lastActive = function () { return lastActive; };
+  JJ.isLocked = function () { return locked; };
+  JJ.lockNow = lockNow;
+  function idleMinutes() { return +(config().settings || {}).idleMinutes || 5; }
+  function checkIdle() { if (!locked && Date.now() - lastActive > idleMinutes() * 60000) lockNow(); }
   setInterval(checkIdle, 10000);
   document.addEventListener("visibilitychange", checkIdle);
   window.addEventListener("focus", checkIdle);

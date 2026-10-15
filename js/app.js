@@ -520,7 +520,7 @@
   // Begin (or redo) a practice order with a clean ticket and fresh score.
   function startOrder(customer, lines, card) {
     state.practice = { customer: customer, lines: lines, card: card, start: Date.now(),
-                       mistakes: 0, cardMistakes: 0, hinted: {} };
+                       mistakes: 0, cardMistakes: 0, hinted: {}, wrongIds: {} };
     state.guide = null;
     state.ticket = [];
     state.path = [];
@@ -613,7 +613,7 @@
     Object.keys(want).forEach(function (k) {
       var w = want[k], h = have[k];
       if (h && h.qty === w.qty) rows.push({ cls: "res-ok", text: "✓ " + describe(w) });
-      else { perfect = false; rows.push({ cls: "res-bad", text: "✗ " + describe(w) + (h ? " — you rang " + h.qty : " — missing") }); }
+      else { perfect = false; state.practice.wrongIds[w.itemId] = true; rows.push({ cls: "res-bad", text: "✗ " + describe(w) + (h ? " — you rang " + h.qty : " — missing") }); }
     });
     Object.keys(have).forEach(function (k) {
       if (!want[k]) { perfect = false; rows.push({ cls: "res-extra", text: "+ Extra: " + describe(have[k]) }); }
@@ -629,7 +629,11 @@
     }).join("") + "</ul>";
     $("result-foot").innerHTML = "<button class='tbtn' id='res-skip'>Give up, next customer</button><button class='tbtn primary' id='res-fix'>Go back and fix it</button>";
     $("res-fix").onclick = closeResult;
-    $("res-skip").onclick = function () { closeResult(); recordStat(false, 0); newOrder(); };
+    $("res-skip").onclick = function () {
+      var p = state.practice;
+      if (JJ.track) JJ.track("giveup", { lines: p.lines, hinted: Object.keys(p.hinted) });
+      closeResult(); recordStat(); newOrder();
+    };
     $("result-overlay").classList.remove("hidden");
   }
   function closeResult() { $("result-overlay").classList.add("hidden"); }
@@ -644,7 +648,9 @@
     var p = state.practice, secs = (Date.now() - p.start) / 1000;
     var hints = Object.keys(p.hinted).length;
     var clean = !p.mistakes && !p.cardMistakes && !hints;
-    recordStat(clean, secs);
+    if (JJ.track) JJ.track("order", { clean: clean, secs: secs, wrongChecks: p.mistakes, wrongCard: p.cardMistakes > 0,
+      hinted: Object.keys(p.hinted), wrongIds: Object.keys(p.wrongIds), lines: p.lines });
+    recordStat();
     $("result-title").textContent = clean ? "Perfect order!" : "Order done";
     $("result-body").innerHTML = "<p>Order total: <strong>" + money(expectedTotal(p.lines)) + "</strong></p>" +
       "<p>Time: <strong>" + fmtTime(secs) + "</strong>" +
@@ -659,17 +665,11 @@
   }
 
   function loadStats() {
-    try { return JSON.parse(localStorage.getItem("jj-stats")) || { done: 0, clean: 0, time: 0, timed: 0 }; }
-    catch (e) { return { done: 0, clean: 0, time: 0, timed: 0 }; }
+    var p = {};
+    try { p = (JSON.parse(localStorage.getItem("jj-ustats:" + (JJ.user && JJ.user.id))) || {}).practice || {}; } catch (e) {}
+    return { done: p.orders || 0, clean: p.perfect || 0, time: p.time || 0, timed: (p.orders || 0) - (p.gaveUp || 0) };
   }
-  function recordStat(clean, secs) {
-    var s = loadStats();
-    s.done++;
-    if (clean) s.clean++;
-    if (secs) { s.time += secs; s.timed++; }
-    try { localStorage.setItem("jj-stats", JSON.stringify(s)); } catch (e) {}
-    renderStats();
-  }
+  function recordStat() { renderStats(); }
   function renderStats() {
     var s = loadStats();
     $("stats").textContent = s.done ? "Orders: " + s.done + " · perfect: " + Math.round(100 * s.clean / s.done) + "%" +
@@ -694,16 +694,23 @@
   //  clean answer moves it up one. Lower boxes come up more often, so
   //  the things you don't know yet get the most practice.
   // ------------------------------------------------------------------
-  var learn = (function () {
-    try { return JSON.parse(localStorage.getItem("jj-learn")) || {}; } catch (e) { return {}; }
-  })();
+  // saved per signed-in person as "jj-learn:<id>" (the owner keeps progress from before accounts)
+  var learn = {};
+  function learnKey() { return "jj-learn:" + (JJ.user ? JJ.user.id : "guest"); }
+  JJ.reloadLearn = function () {
+    try {
+      learn = JSON.parse(localStorage.getItem(learnKey())) ||
+        (JJ.user && JJ.user.owner && JSON.parse(localStorage.getItem("jj-learn"))) || {};
+    } catch (e) { learn = {}; }
+    bags = {};
+  };
   var LEARNED = 3; // box reached after 3 clean answers in a row
 
   function boxOf(kind, id) { return (learn[kind] && learn[kind][id]) || 0; }
   function markLearn(kind, id, ok) {
     learn[kind] = learn[kind] || {};
     learn[kind][id] = ok ? Math.min(4, boxOf(kind, id) + 1) : 0;
-    try { localStorage.setItem("jj-learn", JSON.stringify(learn)); } catch (e) {}
+    try { localStorage.setItem(learnKey(), JSON.stringify(learn)); } catch (e) {}
   }
   function pickWeighted(kind, pool, avoidId) {
     if (pool.length > 1) pool = pool.filter(function (it) { return it.id !== avoidId; });
@@ -812,7 +819,7 @@
     $("flash-grade").classList.toggle("hidden", !flash.shown);
   }
 
-  function gradeFlash(ok) { markLearn("flash", flash.id, ok); nextFlash(); }
+  function gradeFlash(ok) { markLearn("flash", flash.id, ok); if (JJ.track) JJ.track("flash", { id: flash.id, ok: ok }); nextFlash(); }
 
   $("flash-reveal").onclick = function () { flash.shown = true; renderFlash(); };
   $("flash-got").onclick = function () { gradeFlash(true); };
@@ -876,6 +883,7 @@
     }
     var secs = (Date.now() - drill.start) / 1000, clean = !drill.wrong && !drill.hinted;
     markLearn("drill", drill.id, clean);
+    if (JJ.track) JJ.track("drill", { id: drill.id, clean: clean, wrong: drill.wrong, hinted: drill.hinted, secs: secs });
     drillStats.found++;
     drillStats.time += secs;
     drillStats.streak = clean ? drillStats.streak + 1 : 0;
@@ -894,6 +902,7 @@
   };
   $("drill-skip").onclick = function () {
     markLearn("drill", drill.id, false);
+    if (JJ.track) JJ.track("drill-skip", { id: drill.id });
     drillStats.streak = 0;
     $("drill-last").className = "drill-last res-bad";
     $("drill-last").textContent = "Skipped " + ITEMS[drill.id].full + " — " + pathText(ITEMS[drill.id]);
@@ -1044,7 +1053,7 @@
     state.guide = null;
     $("bag-left").textContent = "";
     document.querySelectorAll(".mode-btn[data-mode]").forEach(function (b) { b.classList.toggle("active", b.dataset.mode === mode); });
-    ["practice", "photos", "drill", "flash", "cases", "sheet"].forEach(function (m) { document.body.classList.toggle(m, mode === m); });
+    ["practice", "photos", "drill", "flash", "cases", "sheet", "stats", "admin"].forEach(function (m) { document.body.classList.toggle(m, mode === m); });
     state.practice = null;
     state.ticket = [];
     state.path = [];
@@ -1057,9 +1066,13 @@
     if (mode === "cases") renderCases();
     document.querySelector(".sheet-panel").hidden = mode !== "sheet";
     if (mode === "sheet") renderSheet();
+    if (JJ.onMode) JJ.onMode(mode);
     updatePhotoCount();
     relayout();
   }
+
+  // shared with stats.js
+  JJ.items = ITEMS; JJ.setMode = setMode; JJ.mode = function () { return state.mode; }; JJ.toast = toast;
 
   function relayout() { fitIpad(); lastSize = ""; sizeButtons(); }
   // Practice order card: on the side or along the bottom (remembered in this browser)
