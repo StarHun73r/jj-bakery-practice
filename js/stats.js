@@ -191,12 +191,20 @@
     setInterval(function () { push(false); }, 30000);
     document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") push(true); });
     window.addEventListener("pagehide", function () { push(true); });
+    // every page load (and refresh) sends everything this device has, so the Sheet is current
+    function pushAll() {
+      if (!on) return Promise.resolve();
+      try { Object.keys(localStorage).forEach(function (k) { var m = /^jj-ustats:(.+)$/.exec(k); if (m) dirty[m[1]] = 1; }); } catch (e) {}
+      keep();
+      return push(false);
+    }
+    setTimeout(pushAll, 1500);
 
     return {
       on: on, device: device,
       status: function () { return !on ? "off" : status || "waiting"; },
       changed: function (id) { dirty[id] = 1; keep(); },
-      pull: pull, push: push,
+      pull: pull, push: push, pushAll: pushAll,
       others: function (id) { return (remote[id] || []).filter(function (r) { return r.device !== device && r.device !== "reset"; }); },
       ids: function () { return Object.keys(remote).filter(function (id) { return remote[id].some(function (r) { return r.device !== "reset"; }); }); },
       nameOf: function (id) { var r = remote[id]; return r && r[0] && r[0].name; },
@@ -649,7 +657,7 @@
   document.addEventListener("jj-login", function (e) {
     var u = e.detail.user;
     update(function (s) { s.sessions++; });
-    sync.pull(false);
+    sync.pushAll().then(function () { return sync.pull(true); });
     applyLevel();
     if (e.detail.changed) {
       state.viewing = null; draft = null; dirty = false;
