@@ -349,9 +349,10 @@
 
       modeTimeHtml(mt) +
       "<section class='st-card'><h3>Active time, last 14 days <span class='muted'>(minutes)</span></h3>" +
-        "<div class='st-bars'><div class='st-axis'><span>" + maxMin + "</span><span>0</span></div>" +
+        "<div class='st-bars'>" +
         days.map(function (d) {
-          return "<div class='st-bar' title='" + d.date + ": " + fmtDur(d.v) + "'><div class='st-fill' style='height:" + (100 * d.v / (maxMin * 60)).toFixed(1) + "%'></div><span>" + d.label + "</span></div>";
+          var mins = d.v / 60, lbl = mins >= 10 || !mins ? Math.round(mins) : mins.toFixed(1).replace(/.0$/, '');
+          return "<div class='st-bar' title='" + d.date + ": " + fmtDur(d.v) + "'><b class='st-val" + (d.v ? "" : " zero") + "'>" + lbl + "</b><div class='st-fill' style='height:" + (100 * d.v / (maxMin * 60)).toFixed(1) + "%'></div><span>" + d.label + "</span></div>";
         }).join("") + "</div></section>" +
 
       "<section class='st-card'><div class='it-head'><h3>Items</h3>" +
