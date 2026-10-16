@@ -170,7 +170,7 @@
       return JSON.stringify({ key: CFG.key, action: "push", rows: ids.map(function (id) {
         var s = load(id), t = totals(s), a = accts.find(function (x) { return x.id === id; });
         s.learnedHere = learnedCount(id);
-        var names = namesFor(s);
+        var names = namesFor(combined(id));   // also covers items practiced on this person's other devices
         return { id: id, name: a ? a.name : id, level: a ? a.level : "", device: device, stats: s, names: names,
                  summary: { minutes: Math.round(s.time.total / 60), right: t.pct(t.right), wrong: t.pct(t.wrong), orders: s.practice.orders } };
       }) });
@@ -193,7 +193,7 @@
     function fingerprint(id) {
       var t = "", h = 5381;
       try { t = localStorage.getItem(key(id)) || ""; } catch (e) {}
-      try { t += JSON.stringify(namesFor(JSON.parse(t.slice(0, t.length) || "{}"))); } catch (e) {}
+      try { t += JSON.stringify(namesFor(combined(id))); } catch (e) {}
       for (var i = 0; i < t.length; i++) h = (h * 33 + t.charCodeAt(i)) | 0;
       return t.length + ":" + h;
     }
