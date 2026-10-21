@@ -13,6 +13,17 @@
   var KEYS = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right" };
   var lock = document.getElementById("lock"), dots = document.getElementById("lock-dots");
   var entered = [], locked = false, lastActive = Date.now();
+  // Second step for the owner account: a 3-digit PIN on a number pad (only its hash is kept here).
+  var PIN_HASH = "9bafd90d", PIN_LENGTH = 3;
+  var pinFor = null, pinDirs = null, pin = [];   // set while the Admin Login step is showing
+  var title = lock.querySelector("h1"), hint = lock.querySelector(".lock-box > p");
+  var arrowPad = lock.querySelector(".lock-pad"), wip = lock.querySelector(".lock-wip");
+  var numPad = document.createElement("div");
+  numPad.className = "lock-pad num-pad";
+  numPad.hidden = true;
+  numPad.innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(function (n) { return "<button data-num='" + n + "'>" + n + "</button>"; }).join("") +
+    "<button class='lock-clear num-back' data-back='1'>Back</button><button data-num='0'>0</button><button class='lock-clear num-clear' data-clear='1'>Clear</button>";
+  arrowPad.parentNode.insertBefore(numPad, arrowPad.nextSibling);
 
   function lockHash(s) {
     var x = 0x811c9dc5;
@@ -42,14 +53,44 @@
 
   function drawDots() {
     var html = "";
-    for (var i = 0; i < LENGTH; i++) html += "<span" + (i < entered.length ? " class='on'" : "") + "></span>";
+    var len = pinFor ? PIN_LENGTH : LENGTH, n = pinFor ? pin.length : entered.length;
+    for (var i = 0; i < len; i++) html += "<span" + (i < n ? " class='on'" : "") + "></span>";
     dots.innerHTML = html;
   }
+  function showStep(acct, dirs) {
+    pinFor = acct || null; pinDirs = acct ? dirs : null; pin = [];
+    title.textContent = acct ? "Admin Login" : "JJ Bakery";
+    hint.textContent = acct ? "Enter the admin PIN." : "Enter the 8-arrow code to continue.";
+    arrowPad.hidden = !!acct; numPad.hidden = !acct;
+    if (wip) wip.hidden = !!acct;
+    drawDots();
+  }
+  function shake() {
+    lock.classList.remove("wrong");
+    void lock.offsetWidth;
+    lock.classList.add("wrong");
+  }
+  function pressNum(n) {
+    if (!pinFor || pin.length >= PIN_LENGTH) return;
+    pin.push(n);
+    drawDots();
+    if (pin.length < PIN_LENGTH) return;
+    var ok = lockHash("jj-bakery-pin|" + pin.join("")) === PIN_HASH, acct = pinFor, dirs = pinDirs;
+    if (ok) { showStep(null); JJ.ownerCode = dirs; unlock(acct); return; }
+    // wrong PIN: start over from the arrow code
+    shake();
+    setTimeout(function () { showStep(null); }, 350);
+  }
+  numPad.querySelectorAll("[data-num]").forEach(function (b) { b.onclick = function () { pressNum(b.dataset.num); }; });
+  numPad.querySelector("[data-clear]").onclick = function () { pin = []; drawDots(); };
+  numPad.querySelector("[data-back]").onclick = function () { showStep(null); };
+
   function lockNow() {
     if (locked) return;
     JJ.ownerCode = null;
     locked = true;
     entered = [];
+    showStep(null);
     drawDots();
     lock.hidden = false;
     document.body.classList.add("locked");
@@ -75,11 +116,10 @@
     var h = codeHash(entered), dirs = entered.slice();
     entered = [];
     var acct = config().accounts.find(function (a) { return a.hash === h && a.active; });
-    // the owner's code (kept in memory only) unlocks the stored codes shown in the Admin tab
-    if (acct) { JJ.ownerCode = acct.owner ? dirs : null; unlock(acct); return; }
-    lock.classList.remove("wrong");
-    void lock.offsetWidth;
-    lock.classList.add("wrong");
+    // the owner's code goes on to the Admin Login PIN step; nobody else sees that step
+    if (acct && acct.owner) { showStep(acct, dirs); return; }
+    if (acct) { JJ.ownerCode = null; unlock(acct); return; }
+    shake();
     setTimeout(drawDots, 350);
   }
 
@@ -88,6 +128,12 @@
     // while locked, no key reaches the app underneath
     e.preventDefault();
     e.stopPropagation();
+    if (pinFor) {
+      if (/^[0-9]$/.test(e.key) && !e.repeat) pressNum(e.key);
+      else if (e.key === "Backspace") { pin = []; drawDots(); }
+      else if (e.key === "Escape") showStep(null);
+      return;
+    }
     if (KEYS[e.key] && !e.repeat) press(KEYS[e.key]);
     else if (e.key === "Escape" || e.key === "Backspace") clearEntry();
   }, true);

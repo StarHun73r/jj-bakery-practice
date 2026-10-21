@@ -21,3 +21,8 @@ body.locked > :not(.lock):not(script) { visibility: hidden; }
 .lock[hidden] { display: none; }
 .lock-pad .lock-clear { grid-column: 1 / 4; grid-row: 3; font-size: .95rem; background: transparent; border: 1px solid #5a6168; color: #ccc; }
 .lock-wip { margin: 0; font-size: .8rem; color: #8a929a; font-style: italic; }
+/* Admin Login number pad: same buttons as the arrow pad, 3 across */
+.lock-pad.num-pad { grid-template-rows: repeat(4, 64px); }
+.lock-pad.num-pad button { grid-column: auto; grid-row: auto; }
+.lock-pad.num-pad .lock-clear { font-size: .95rem; }
+.lock-pad[hidden], .lock-wip[hidden] { display: none; }
