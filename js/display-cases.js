@@ -132,6 +132,35 @@ window.DISPLAY_CASES = [
     ],
   },
   {
+    // Bread-folder items: they sit on shelves that get rearranged, so there is no
+    // fixed overview photo. Rows follow the register folders, in button order.
+    id: "bread",
+    name: "Bread shelves",
+    note: "Breads, Danish, toast, steamed buns and sandwiches (spots change day to day)",
+    rows: [
+      {
+        name: "Bread",
+        items: ["pineapple-bun", "custard-bun", "pine-bun-coconut", "pine-bun-peanut", "peanut-bun", "sesame-bun", "garlic-cheese-toast", "red-bean-bun", "coconut-bun", "taro-bun", "butter-coconut", "red-bean-mochi", "corn-porksong", "soft-red-bean", "ham-cheese-ball", "taro-buttermilk", "raisin-bun", "porksong-bun", "pine-buttermilk", "bbq-pork-bun", "meat-lovers", "ham-bacon-cheese", "porksong-puff", "buttermilk-puff", "hot-dog-bun", "satay-porksong", "curry-beef-pie", "chicken-pie", "jj-special-s", "parmesan", "cheese-hot-dog", "walnut-wheat", "brown-sugar-walnut", "scallion-bun", "seaweed-roll", "cranberry-cheese", "euro-walnut", "wave-bread", "golden-horn-5", "day-old-3", "korean-mochi-11", "strawberry-coconut", "pigs-blanket-6", "bacon-scone"],
+      },
+      {
+        name: "Danish",
+        items: ["danish-cream-cheese", "danish-almond", "danish-tuna", "danish-frosted", "matcha-croissant", "earl-grey-croissant", "danish-ham-cheese", "danish-hot-dog"],
+      },
+      {
+        name: "Toast",
+        items: ["white-toast-8", "wheat-toast-8", "hokkaido-toast", "raisin-toast", "honey-carrot-toast", "coffee-walnut-toast", "french-walnut-toast", "black-sesame-toast"],
+      },
+      {
+        name: "Steam",
+        items: ["milk-mantou-1", "wheat-mantou-1", "brown-mantou-1", "veg-pork-bao-1", "veg-bao-1"],
+      },
+      {
+        name: "Sandwich",
+        items: ["ham-cheese-sand", "fried-egg-sand", "tuna-sand"],
+      },
+    ],
+  },
+  {
     // Items whose case/spot isn't confirmed yet. Move them into a real
     // case once there's an overview photo of where they sit.
     id: "misc",
@@ -140,7 +169,7 @@ window.DISPLAY_CASES = [
     rows: [
       {
         name: "Not placed yet",
-        items: ["plain-chiffon", "hot-dog-bun", "danish-cream-cheese", "danish-hot-dog", "pine-buttermilk", "pineapple-bun", "wave-bread", "bacon-scone", "cupcake-4", "sponge-cake", "brown-mantou-1", "wheat-mantou-1", "milk-mantou-1", "korean-mochi-11", "golden-horn-5", "red-bean-mochi", "ham-bacon-cheese", "taro-buttermilk", "bbq-pork-bun", "cheese-hot-dog", "honey-carrot-toast", "hokkaido-toast", "coffee-walnut-toast", "black-sesame-toast", "raisin-toast", "french-walnut-toast", "wheat-toast-8", "white-toast-8", "curry-beef-pie", "chicken-pie", "raisin-bun", "red-bean-bun", "custard-bun", "day-old-3", "garlic-cheese-toast", "danish-frosted", "earl-grey-croissant", "danish-ham-cheese", "danish-almond", "danish-tuna", "soft-red-bean", "euro-walnut", "sweet-sesame-cake", "peanut-bun", "parmesan", "walnut-wheat", "buttermilk-puff", "porksong-puff", "butter-coconut", "brown-sugar-walnut", "sesame-bun", "taro-bun", "porksong-bun", "cranberry-cheese", "pine-bun-coconut", "pine-bun-peanut", "8-fruit-festival", "8-black-forest", "8-strawberry-creme", "8-tiramisu", "8-coffee-fruit", "8-coffee-straw", "8-mango-mousse", "ham-cheese-sand", "tuna-sand", "fried-egg-sand", "pigs-blanket-6", "ham-cheese-ball", "strawberry-coconut", "daikon-pastry", "satay-porksong", "scallion-bun", "coffee-triangle", "8-taro-pudding", "8-vanilla-fruit", "8-choco-straw", "8-choco-coffee", "red-bean-mochi-box", "jj-special-s", "corn-porksong", "seaweed-roll", "coconut-bun", "portugal-tart-1", "matcha-croissant", "meat-lovers", "zongzi", "veg-bao-1", "veg-pork-bao-1", "tw-date-egg", "tw-redbean-egg", "tw-mung-s", "tw-lava", "tw-veg-mung-l", "tw-mung-l", "tw-lotus-egg"],
+        items: ["plain-chiffon", "cupcake-4", "sponge-cake", "sweet-sesame-cake", "8-fruit-festival", "8-black-forest", "8-strawberry-creme", "8-tiramisu", "8-coffee-fruit", "8-coffee-straw", "8-mango-mousse", "daikon-pastry", "coffee-triangle", "8-taro-pudding", "8-vanilla-fruit", "8-choco-straw", "8-choco-coffee", "red-bean-mochi-box", "portugal-tart-1", "zongzi", "tw-date-egg", "tw-redbean-egg", "tw-mung-s", "tw-lava", "tw-veg-mung-l", "tw-mung-l", "tw-lotus-egg"],
       },
     ],
   },
