@@ -48,7 +48,7 @@ window.ITEM_NOTES = {
   "walnut-wheat": "Oval brownish wheat loaf with slashes on top and walnut pieces showing. Lighter brown than the brown sugar one.",
   "brown-sugar-walnut": "Dark brown oval loaf with slashes. Much darker color (brown sugar and cocoa) than the wheat walnut.",
   "cranberry-cheese": "Oval multigrain bun with slits on top and dark-red cranberries showing through the crust and slits. Cream cheese inside.",
-  "euro-walnut": "Big flat round golden loaf with walnut pieces poking through the top.",
+  "euro-walnut": "Round loaf with a pale, cracked cookie-like crust on top and lots of walnut pieces around the sides and through the cracks.",
   "wave-bread": "Large rectangular loaf with a bumpy \"wave\" top and the JJ logo stamped in the middle.",
 
   // ---- Bread folder: multi-packs ----
