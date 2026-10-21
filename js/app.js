@@ -717,6 +717,7 @@
   function markLearn(kind, id, ok) {
     learn[kind] = learn[kind] || {};
     learn[kind][id] = ok ? Math.min(4, boxOf(kind, id) + 1) : 0;
+    if (JJ.user && JJ.user.level === "test") return;   // test accounts leave nothing behind
     try { localStorage.setItem(learnKey(), JSON.stringify(learn)); } catch (e) {}
   }
   function pickWeighted(kind, pool, avoidId) {

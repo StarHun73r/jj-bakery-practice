@@ -13,11 +13,12 @@
   var JJ = window.JJ;
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) { var d = document.createElement("div"); d.textContent = s == null ? "" : s; return d.innerHTML; };
-  var LEVELS = { admin: "Admin", trainer: "Trainer", trainee: "Trainee" };
+  var LEVELS = { admin: "Admin", trainer: "Trainer", trainee: "Trainee", test: "Test" };
   var LEVEL_NOTE = {
     admin: "Everything, including this Admin tab",
     trainer: "All modes, including Photos (adding and replacing photos)",
     trainee: "All practice modes and the Sheet, but not Photos",
+    test: "Every tab except Admin, but nothing it does is recorded or sent to the Sheet",
   };
 
   // ------------------------------------------------------------------
@@ -46,7 +47,7 @@
   function today(t) { var d = new Date(t || Date.now()); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
 
   function update(fn, timeOnly) {
-    if (!JJ.user) return;
+    if (!JJ.user || JJ.user.level === "test") return;   // test accounts leave no stats
     var s = load(JJ.user.id);
     fn(s);
     s.last = Date.now();
@@ -319,6 +320,11 @@
 
   function renderStatsPage() {
     if (!JJ.user) return;
+    if (JJ.user.level === "test" && !state.viewing) {
+      $("stats-page").innerHTML = "<section class='st-card'><h2>" + esc(JJ.user.name) + " <span class='muted'>(test account)</span></h2>" +
+        "<p class='muted'>This is a test account, so nothing done while signed in is recorded or sent to the Google Sheet. Sign in with your own code to see your stats.</p></section>";
+      return;
+    }
     var id = state.viewing || JJ.user.id, acct = accountById(id) || { name: "Former account", level: "trainee" };
     var s = combined(id), t = totals(s), p = s.practice, dr = s.drill, f = s.flash;
     var mine = id === JJ.user.id;
