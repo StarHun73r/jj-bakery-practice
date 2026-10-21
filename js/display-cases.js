@@ -140,11 +140,11 @@ window.DISPLAY_CASES = [
     rows: [
       {
         name: "Bread",
-        items: ["pineapple-bun", "custard-bun", "pine-bun-coconut", "pine-bun-peanut", "peanut-bun", "sesame-bun", "garlic-cheese-toast", "red-bean-bun", "coconut-bun", "taro-bun", "butter-coconut", "red-bean-mochi", "corn-porksong", "soft-red-bean", "ham-cheese-ball", "taro-buttermilk", "raisin-bun", "porksong-bun", "pine-buttermilk", "bbq-pork-bun", "meat-lovers", "ham-bacon-cheese", "porksong-puff", "buttermilk-puff", "hot-dog-bun", "satay-porksong", "curry-beef-pie", "chicken-pie", "jj-special-s", "parmesan", "cheese-hot-dog", "walnut-wheat", "brown-sugar-walnut", "scallion-bun", "seaweed-roll", "cranberry-cheese", "euro-walnut", "wave-bread", "golden-horn-5", "day-old-3", "korean-mochi-11", "strawberry-coconut", "pigs-blanket-6", "bacon-scone"],
+        items: ["pineapple-bun", "garlic-stick", "corn-bun", "custard-bun", "pine-bun-coconut", "pine-bun-peanut", "peanut-bun", "sesame-bun", "garlic-cheese-toast", "red-bean-bun", "coconut-bun", "taro-bun", "butter-coconut", "french-garlic", "cheese-toast", "red-bean-mochi", "corn-porksong", "soft-red-bean", "ham-cheese-ball", "taro-buttermilk", "raisin-bun", "porksong-bun", "pine-buttermilk", "bbq-pork-bun", "meat-lovers", "ham-bacon-cheese", "cheese-cake-bread", "porksong-puff", "buttermilk-puff", "hot-dog-bun", "satay-porksong", "curry-beef-pie", "chicken-pie", "jj-special-s", "parmesan", "scallion-hot-dog", "cheese-hot-dog", "walnut-wheat", "brown-sugar-walnut", "scallion-bun", "seaweed-roll", "cranberry-cheese", "euro-walnut", "butter-rolls-5", "wave-bread", "golden-horn-5", "qq-mochi-4", "day-old-3", "garlic-rolls-5", "korean-mochi-11", "sea-salt-4", "strawberry-coconut", "pigs-blanket-6", "bacon-scone"],
       },
       {
         name: "Danish",
-        items: ["danish-cream-cheese", "danish-almond", "danish-tuna", "danish-frosted", "matcha-croissant", "earl-grey-croissant", "danish-ham-cheese", "danish-hot-dog"],
+        items: ["danish-cream-cheese", "danish-almond", "danish-raisin", "danish-tuna", "danish-frosted", "matcha-croissant", "earl-grey-croissant", "danish-ham-cheese", "danish-hot-dog", "med-croissant", "choc-strawberry"],
       },
       {
         name: "Toast",
