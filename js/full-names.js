@@ -193,4 +193,8 @@ window.FULL_NAMES = {
   "tw-veg-mung-l": "素綠豆椪 Vegetarian Mung Bean Pastry",
   "tw-mung-l": "綠豆椪 Mung Bean Pastry",
   "tw-lotus-egg": "蓮蓉蛋黃酥 Lotus w/Egg Yolk Pastry",
+  "cheese-cake-bread": "奧莉維 Cheese Cake Bread",
+  "cheese-toast": "起司土司片 Baked Cheese Toast",
+  "danish-raisin": "丹麥葡萄乾 Raisin Danish",
+  "choc-strawberry": "巧克力草莓丹麥 Chocolate Strawberry Danish",
 };

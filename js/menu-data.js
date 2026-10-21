@@ -52,7 +52,7 @@ window.MENU_TREE = [
       I("taro-bun",            "芋頭麵包 Taro Bun", 2.05),
       I("butter-coconut",      "奶油椰子 Coconut Bun w/S...", 2.05),
       I("french-garlic",       "法國大蒜 French Garlic Br...", 0),
-      I("cheese-toast",        "起司吐司片Baked Cheese...", 0),
+      I("cheese-toast",        "起司吐司片Baked Cheese...", 2.15),
       I("red-bean-mochi",      "紅豆麻糬包 RedBea...", 2.15),
       I("corn-porksong",       "玉米肉鬆 Corn B. w/ PorkSong", 2.15),
       I("soft-red-bean",       "超綿紅豆 Soft Red Bean Bun", 2.20),
@@ -64,7 +64,7 @@ window.MENU_TREE = [
       I("bbq-pork-bun",        "叉燒麵包 BBQ Pork Bun", 2.30),
       I("meat-lovers",         "多色麵包 Meat Lover's...", 2.30),
       I("ham-bacon-cheese",    "培根辮子 Ham&Bacon Chee...", 2.30),
-      I("cheese-cake-bread",   "奧莉維 Cheese Cake Br...", 0),
+      I("cheese-cake-bread",   "奧莉維 Cheese Cake Br...", 2.30),
       I("porksong-puff",       "起酥肉鬆 Porksong Bun w/P...", 2.50),
       I("buttermilk-puff",     "起酥奶酥 Buttermilk B.w/Puff...", 2.50),
       I("hot-dog-bun",         "熱狗麵包 Hot Dog Bun", 2.55),
@@ -98,7 +98,7 @@ window.MENU_TREE = [
     F("丹麥Danish", [
       I("danish-cream-cheese", "丹麥乳酪 Cream Cheese...", 2.75, { color: YELLOW }),
       I("danish-almond",       "丹麥杏 Almond Danish", 2.80),        // a character is hidden by glare in the photo
-      I("danish-raisin",       "丹麥葡萄乾Raisin Danish", 0, { color: PURPLE }),
+      I("danish-raisin",       "丹麥葡萄乾Raisin Danish", 2.80, { color: PURPLE }),
       I("danish-tuna",         "丹麥鮪魚 Tuna Danish", 2.95),
       I("danish-frosted",      "糖霜丹麥杏仁 Frosted...", 3.00),
       I("matcha-croissant",    "抹茶杏仁可頌 Matcha...", 3.00),
@@ -106,7 +106,7 @@ window.MENU_TREE = [
       I("danish-ham-cheese",   "丹麥火腿起司Ham & Chees...", 3.00),
       I("danish-hot-dog",      "丹麥熱狗 Hot Dog Danish", 3.30),
       I("med-croissant",       "中牛角 Med. Croissan...", 0),
-      I("choc-strawberry",     "巧克力草莓丹麥 Chocola...", 0),
+      I("choc-strawberry",     "巧克力草莓丹麥 Chocola...", 2.80),
     ]),
     F("吐司Toast", [
       I("white-toast-4",       "白吐司4片White Toast 4p...", 0, { color: PURPLE }),

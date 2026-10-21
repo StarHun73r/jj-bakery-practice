@@ -100,4 +100,8 @@ window.ITEM_NOTES = {
   "tw-lava": "Pale flaky round pastry with a red flower stamp on top. Flower stamp = lava custard.",
   "tw-veg-mung-l": "Big pale flaky mung bean pastry with a red 素 (vegetarian) stamp in a circle.",
   "tw-mung-l": "Big pale flaky mung bean pastry with a red 小雅 stamp in an oval. Has pork inside, unlike the 素 one.",
+  "cheese-cake-bread": "Pale, crackly cookie-like crust dotted with dark chocolate chips. Looks like a big chocolate-chip cookie bun.",
+  "cheese-toast": "A thick toast slice with a glossy orange baked-cheese top and dark toasted edges. One slice, not a bun; the green-herb one is the garlic cheese toast.",
+  "danish-raisin": "Round spiral Danish (snail-shell layers) with raisins and a few sliced almonds on top.",
+  "choc-strawberry": "Oval flaky Danish with sugar crystals on top and three diagonal slits showing dark filling inside.",
 };

@@ -186,4 +186,8 @@ window.PHOTO_SOURCES = {
   "tw-veg-mung-l": "incoming/350-tw-veg-mung-l.webp",
   "tw-mung-l": "incoming/352-tw-mung-l.webp",
   "tw-lotus-egg": "incoming/354-tw-lotus-egg.webp",
+  "cheese-cake-bread": "incoming/356-cheese-cake-bread.webp",
+  "cheese-toast": "incoming/358-cheese-toast.webp",
+  "danish-raisin": "incoming/360-danish-raisin.webp",
+  "choc-strawberry": "incoming/362-choc-strawberry.webp",
 };
