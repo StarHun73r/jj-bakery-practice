@@ -438,3 +438,15 @@ body.fit .trainer { min-height: 88px; align-content: flex-start; row-gap: 6px; }
 .st-bar { box-sizing: border-box; padding-top: 18px; }
 .st-val { font-size: .72rem; font-weight: 600; color: #333; font-variant-numeric: tabular-nums; line-height: 1; margin-bottom: 3px; }
 .st-val.zero { color: #b9c0c6; font-weight: 400; }
+/* Notes tab */
+body:not(.notes) .notes-only { display: none !important; }
+body.notes .ipad { display: none; }
+.nt-text { width: 100%; box-sizing: border-box; min-height: 55vh; font: .95rem/1.5 ui-monospace, Consolas, monospace; padding: 10px 12px; border: 1px solid #ccc; border-radius: 8px; resize: vertical; }
+.nt-body { line-height: 1.55; max-width: 75ch; }
+.nt-body p { margin: 0 0 4px; }
+.nt-body h3 { margin: 14px 0 6px; font-size: 1.05rem; }
+.nt-gap { height: 8px; }
+.nt-list { margin: 2px 0 6px; padding-left: 22px; }
+.nt-check { list-style: none; margin-left: -20px; }
+.nt-check span { display: inline-block; width: 1.2em; }
+.nt-check.done { color: var(--muted); text-decoration: line-through; }

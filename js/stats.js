@@ -160,6 +160,7 @@
             }
           });
           remote = byId; lastPull = Date.now(); status = "ok";
+          if (JJ.gotNotes) JJ.gotNotes(r.notes);
           try { localStorage.setItem("jj-remote-stats", JSON.stringify(remote)); } catch (e) {}
         })
         .catch(function () { status = "offline"; })
@@ -724,6 +725,7 @@
     state.mode = mode;
     if (mode === "stats") renderStatsPage();
     if (mode === "admin") renderAdmin();
+    if (mode === "notes" && JJ.onNotes) JJ.onNotes();
     if (mode === "stats" || mode === "admin") sync.push(false, true).then(function () { return sync.pull(true); }).then(function () {
       if (state.mode === "stats") renderStatsPage();
       if (state.mode === "admin") renderAdmin();

@@ -1061,7 +1061,7 @@
     state.guide = null;
     $("bag-left").textContent = "";
     document.querySelectorAll(".mode-btn[data-mode]").forEach(function (b) { b.classList.toggle("active", b.dataset.mode === mode); });
-    ["practice", "photos", "drill", "flash", "cases", "sheet", "stats", "admin"].forEach(function (m) { document.body.classList.toggle(m, mode === m); });
+    ["practice", "photos", "drill", "flash", "cases", "sheet", "stats", "admin", "notes"].forEach(function (m) { document.body.classList.toggle(m, mode === m); });
     state.practice = null;
     state.ticket = [];
     state.path = [];
