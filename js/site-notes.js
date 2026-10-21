@@ -1,4 +1,4 @@
-// Shared notes (Notes tab). Everyone can read them; only an Admin can edit.
+// Shared notes (Notes tab). Everyone can read them; only the owner account can edit.
 // They're kept in the Google Sheet's "Notes" tab (see tools/google-sheet-sync.gs),
 // so a save shows up for every account on every device. Without sync, the
 // notes below are what everyone sees, and an admin's edits stay on that device.
@@ -66,11 +66,13 @@ window.SITE_NOTES = { text: "", saved: "", by: "" };
       "<p class='muted st-small'>The full list is on the <b>Sheet</b> tab: set the filter to <b>Missing photos</b>.</p>";
   }
 
-  function isAdmin() { return JJ.user && JJ.user.level === "admin"; }
+  // only the owner account (↑↑↓↓←→←→) can edit; every other account just reads
+  function isAdmin() { return !!(JJ.user && JJ.user.owner); }
   function when(t) { return t ? new Date(t).toLocaleString(undefined, { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" }) : ""; }
 
   function render() {
     var page = $("notes-page");
+    if (editing && !isAdmin()) editing = false;
     if (editing) {
       page.innerHTML = "<section class='st-card'><div class='ad-head'><h2>Notes</h2><div class='ad-save'>" +
         "<button class='tbtn' id='nt-cancel'>Cancel</button> <button class='tbtn primary' id='nt-save'>" + (saving ? "Saving…" : "Save") + "</button></div></div>" +
@@ -93,7 +95,7 @@ window.SITE_NOTES = { text: "", saved: "", by: "" };
   }
 
   function save() {
-    if (saving) return;
+    if (saving || !isAdmin()) return;
     var text = $("nt-text").value, mine = { text: text, saved: new Date().toISOString(), by: JJ.user.name };
     if (!CFG.url) { notes = mine; keep(); editing = false; JJ.toast("Saved on this device (sync is off here)"); return render(); }
     saving = true; render(); $("nt-text").value = text;
@@ -108,6 +110,10 @@ window.SITE_NOTES = { text: "", saved: "", by: "" };
       })
       .catch(function () { saving = false; notes = mine; keep(); editing = false; status = "offline"; JJ.toast("Couldn't reach the Sheet. Saved on this device."); render(); });
   }
+
+  // a different person signing in sees the read-only page, never the last one's editor
+  document.addEventListener("jj-login", function () { editing = false; if (JJ.mode() === "notes") render(); });
+  document.addEventListener("jj-lock", function () { editing = false; });
 
   JJ.onNotes = function () { editing = false; render(); refresh().then(function () { if (JJ.mode() === "notes" && !editing) render(); }); };
 })();
