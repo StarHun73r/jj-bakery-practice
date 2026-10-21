@@ -512,7 +512,7 @@
             "<td><input class='ad-name' value='" + esc(a.name) + "' aria-label='Name'></td>" +
             "<td>" + (a.owner ? "Admin (owner)" : "<select class='ad-level' aria-label='Level'>" +
               Object.keys(LEVELS).map(function (l) { return "<option value='" + l + "'" + (l === a.level ? " selected" : "") + ">" + LEVELS[l] + "</option>"; }).join("") + "</select>") + "</td>" +
-            "<td>" + (a.owner ? "<span class='muted'>↑↑↓↓←→←→</span>" : "<button class='tbtn ad-code'>Set new code</button>") + "</td>" +
+            "<td><span class='ad-arrows'>" + esc(codeText(a)) + "</span>" + (a.owner ? "" : " <button class='tbtn ad-code'>Set new code</button>") + "</td>" +
             "<td>" + (a.owner ? "✓" : "<input type='checkbox' class='ad-active'" + (a.active ? " checked" : "") + " aria-label='Active'>") + "</td>" +
             "<td><button class='linkish ad-view'>" + fmtDur(s.time.total) + " · " + t.pct(t.right) + " right</button></td>" +
             "<td>" + (a.owner ? "" : "<button class='tbtn danger-fill ad-del'>Remove</button>") + "</td></tr>";
@@ -550,7 +550,7 @@
       tr.querySelector(".ad-name").onchange = function () { a.name = this.value.trim() || a.name; setDirty(true); };
       var lv = tr.querySelector(".ad-level"); if (lv) lv.onchange = function () { a.level = this.value; setDirty(true); };
       var ac = tr.querySelector(".ad-active"); if (ac) ac.onchange = function () { a.active = this.checked; setDirty(true); };
-      var cd = tr.querySelector(".ad-code"); if (cd) cd.onclick = function () { pickCode(a.name, a.hash, function (h) { a.hash = h; setDirty(true); }); };
+      var cd = tr.querySelector(".ad-code"); if (cd) cd.onclick = function () { pickCode(a.name, a.hash, function (h, dirs) { a.hash = h; a.code = seal(dirs, a.id); setDirty(true); }); };
       var dl = tr.querySelector(".ad-del"); if (dl) dl.onclick = function () {
         if (dl.dataset.sure) { accts.splice(accts.indexOf(a), 1); setDirty(true); }
         else { dl.dataset.sure = 1; dl.textContent = "Tap again to remove"; }
@@ -560,10 +560,10 @@
     $("ad-add").onclick = function () {
       var name = $("ad-new-name").value.trim(), level = $("ad-new-level").value;
       if (!name) { JJ.toast("Type their name first"); $("ad-new-name").focus(); return; }
-      pickCode(name, null, function (h) {
+      pickCode(name, null, function (h, dirs) {
         var id = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 20) || "person";
         while (accts.some(function (x) { return x.id === id; })) id += "-" + Math.floor(Math.random() * 90 + 10);
-        accts.push({ id: id, name: name, level: level, hash: h, active: true });
+        accts.push({ id: id, name: name, level: level, hash: h, code: seal(dirs, id), active: true });
         setDirty(true);
       });
     };
@@ -616,7 +616,28 @@
     } catch (e) { JJ.toast("That doesn't look like a stats code"); }
   }
 
-  // Arrow-pad popup to choose a code. Calls done(hash) once a new, unused code is entered twice.
+  // Each account's code is stored locked with the owner's code (a.code, 4 hex digits), so the
+  // Admin tab can show it to the owner and nobody reading the public files can.
+  var DIRS = ["up", "down", "left", "right"], ARROW = { up: "↑", down: "↓", left: "←", right: "→" };
+  function sealKey(id) { return parseInt(JJ.codeHash(JJ.ownerCode.concat(["seal", id])), 16) & 0xffff; }
+  function seal(dirs, id) {
+    if (!JJ.ownerCode) return undefined;
+    var v = 0; dirs.forEach(function (d, i) { v |= DIRS.indexOf(d) << (2 * i); });
+    return ((v ^ sealKey(id)) >>> 0).toString(16).padStart(4, "0");
+  }
+  function unseal(code, id, hash) {
+    if (!JJ.ownerCode || !/^[0-9a-f]{4}$/.test(code || "")) return null;
+    var v = parseInt(code, 16) ^ sealKey(id), dirs = [];
+    for (var i = 0; i < 8; i++) dirs.push(DIRS[(v >> (2 * i)) & 3]);
+    return JJ.codeHash(dirs) === hash ? dirs : null;   // only if it really is their code
+  }
+  function codeText(a) {
+    if (a.owner) return JJ.ownerCode ? JJ.ownerCode.map(function (d) { return ARROW[d]; }).join("") : "(your code)";
+    var d = unseal(a.code, a.id, a.hash);
+    return d ? d.map(function (x) { return ARROW[x]; }).join("") : (JJ.ownerCode ? "not stored, set a new one" : "sign in as owner to see");
+  }
+
+  // Arrow-pad popup to choose a code. Calls done(hash, arrows) once a new, unused code is entered twice.
   function pickCode(name, oldHash, done) {
     var first = null, entered = [];
     var ov = $("code-overlay");
@@ -630,14 +651,14 @@
       entered.push(d);
       draw();
       if (entered.length < 8) return;
-      var h = JJ.codeHash(entered);
+      var h = JJ.codeHash(entered), dirs = entered.slice();
       entered = [];
       if (!first) {
         var taken = draft.accounts.some(function (a) { return a.hash === h && a.hash !== oldHash; });
         if (taken) { draw("Someone already uses that code. Try a different one."); return; }
         first = h; draw();
       } else if (h !== first) { first = null; draw("The two didn't match. Start again."); }
-      else { close(); done(h); JJ.toast("Code set for " + name + ". Remember to save."); }
+      else { close(); done(h, dirs); JJ.toast("Code set for " + name + ". Remember to save."); }
     }
     function key(e) {
       var map = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right" };

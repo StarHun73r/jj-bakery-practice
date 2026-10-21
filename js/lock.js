@@ -47,6 +47,7 @@
   }
   function lockNow() {
     if (locked) return;
+    JJ.ownerCode = null;
     locked = true;
     entered = [];
     drawDots();
@@ -71,10 +72,11 @@
     drawDots();
     if (entered.length < LENGTH) return;
     // all 8 in: check the whole code at once
-    var h = codeHash(entered);
+    var h = codeHash(entered), dirs = entered.slice();
     entered = [];
     var acct = config().accounts.find(function (a) { return a.hash === h && a.active; });
-    if (acct) { unlock(acct); return; }
+    // the owner's code (kept in memory only) unlocks the stored codes shown in the Admin tab
+    if (acct) { JJ.ownerCode = acct.owner ? dirs : null; unlock(acct); return; }
     lock.classList.remove("wrong");
     void lock.offsetWidth;
     lock.classList.add("wrong");
