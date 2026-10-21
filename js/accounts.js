@@ -8,10 +8,11 @@
 //        "trainee" - every practice mode and the Sheet, but not Photos
 //        "test"    - like a trainer (no Admin tab), but nothing it does is recorded or synced
 window.JJ_ACCOUNTS = {
-  rev: 2,
+  rev: 3,
   settings: { idleMinutes: 5 },
   accounts: [
     { id: "owner", name: "Owner", level: "admin", hash: "8d9bb775", active: true, owner: true },
     { id: "test", name: "Test", level: "test", hash: "4ca44d95", active: true },
+    { id: "trainee", name: "Trainee", level: "trainee", hash: "eb036925", active: true },
   ],
 };
