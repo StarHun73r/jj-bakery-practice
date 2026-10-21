@@ -14,7 +14,7 @@
   var lock = document.getElementById("lock"), dots = document.getElementById("lock-dots");
   var entered = [], locked = false, lastActive = Date.now();
   // Second step for the owner account: a 3-digit PIN on a number pad (only its hash is kept here).
-  var PIN_HASH = "9bafd90d", PIN_LENGTH = 3;
+  var PIN_HASH = "9bafd90d", PIN_MAX = 8;   // the PIN length is never shown; Enter checks it
   var pinFor = null, pinDirs = null, pin = [];   // set while the Admin Login step is showing
   var title = lock.querySelector("h1"), hint = lock.querySelector(".lock-box > p");
   var arrowPad = lock.querySelector(".lock-pad"), wip = lock.querySelector(".lock-wip");
@@ -22,7 +22,8 @@
   numPad.className = "lock-pad num-pad";
   numPad.hidden = true;
   numPad.innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(function (n) { return "<button data-num='" + n + "'>" + n + "</button>"; }).join("") +
-    "<button class='lock-clear num-back' data-back='1'>Back</button><button data-num='0'>0</button><button class='lock-clear num-clear' data-clear='1'>Clear</button>";
+    "<button class='lock-clear num-clear' data-clear='1'>Clear</button><button data-num='0'>0</button><button class='num-enter' data-enter='1'>Enter</button>" +
+    "<button class='lock-clear num-back' data-back='1'>Back</button>";
   arrowPad.parentNode.insertBefore(numPad, arrowPad.nextSibling);
 
   function lockHash(s) {
@@ -53,7 +54,8 @@
 
   function drawDots() {
     var html = "";
-    var len = pinFor ? PIN_LENGTH : LENGTH, n = pinFor ? pin.length : entered.length;
+    // PIN step: one dot per digit typed so far, so the length stays hidden
+    var len = pinFor ? pin.length : LENGTH, n = pinFor ? pin.length : entered.length;
     for (var i = 0; i < len; i++) html += "<span" + (i < n ? " class='on'" : "") + "></span>";
     dots.innerHTML = html;
   }
@@ -71,10 +73,13 @@
     lock.classList.add("wrong");
   }
   function pressNum(n) {
-    if (!pinFor || pin.length >= PIN_LENGTH) return;
+    if (!pinFor || pin.length >= PIN_MAX) return;
     pin.push(n);
     drawDots();
-    if (pin.length < PIN_LENGTH) return;
+  }
+  function enterPin() {
+    if (!pinFor) return;
+    if (!pin.length) { shake(); return; }
     var ok = lockHash("jj-bakery-pin|" + pin.join("")) === PIN_HASH, acct = pinFor, dirs = pinDirs;
     if (ok) { showStep(null); JJ.ownerCode = dirs; unlock(acct); return; }
     // wrong PIN: start over from the arrow code
@@ -82,6 +87,7 @@
     setTimeout(function () { showStep(null); }, 350);
   }
   numPad.querySelectorAll("[data-num]").forEach(function (b) { b.onclick = function () { pressNum(b.dataset.num); }; });
+  numPad.querySelector("[data-enter]").onclick = enterPin;
   numPad.querySelector("[data-clear]").onclick = function () { pin = []; drawDots(); };
   numPad.querySelector("[data-back]").onclick = function () { showStep(null); };
 
@@ -130,6 +136,7 @@
     e.stopPropagation();
     if (pinFor) {
       if (/^[0-9]$/.test(e.key) && !e.repeat) pressNum(e.key);
+      else if (e.key === "Enter") enterPin();
       else if (e.key === "Backspace") { pin = []; drawDots(); }
       else if (e.key === "Escape") showStep(null);
       return;

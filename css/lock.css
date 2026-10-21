@@ -26,3 +26,7 @@ body.locked > :not(.lock):not(script) { visibility: hidden; }
 .lock-pad.num-pad button { grid-column: auto; grid-row: auto; }
 .lock-pad.num-pad .lock-clear { font-size: .95rem; }
 .lock-pad[hidden], .lock-wip[hidden] { display: none; }
+.lock-pad.num-pad { grid-template-rows: repeat(4, 64px) 40px; }
+.lock-pad.num-pad .num-back { grid-column: 1 / 4; }
+.lock-pad .num-enter { background: #1d9bd7; font-size: 1rem; }
+.lock-dots { min-height: 18px; }
