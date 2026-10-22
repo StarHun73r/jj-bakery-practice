@@ -447,7 +447,7 @@
   // Settings that decide what an order can contain; a pre-made next order
   // is only used if these haven't changed since it was made.
   function orderSettings() {
-    return [$("deck").value, $("difficulty").value, $("order-size").value, $("photo-only").checked, bagOn()].join("|");
+    return [$("deck").value, $("difficulty").value, $("order-size").value, $("photo-only").checked, bagOn(), $("exp-mix").checked].join("|");
   }
 
   function practicePool(quiet) {
@@ -464,9 +464,64 @@
   }
 
   // Pick 1-10 items: mostly one of each, sometimes 2-4 of the same thing.
+  // ---- Experimental mix (the "Experimental (Rebalancing Changes)" box) ----
+  // Closer to what the store actually rings up. Per order:
+  //   drink      about every other order, at most 2
+  //   cake/slice about every 6-12 orders (1 in 9)
+  //   frozen     about once a dozen orders
+  //   cookie/sweet fairly often (about 1 in 3 orders)
+  // and every other slot is filled mostly with Bread/Danish (~55% of all items),
+  // toast ~5%, plus some steamed buns, sandwiches and other products.
+  function mixGroup(it) {
+    var top = it.path[0] ? it.path[0].name : "", sub = it.path[1] ? it.path[1].name : "";
+    if (top === "麵包Bread") return sub === "麵包Bread" || sub === "丹麥Danish" ? "bread" : sub === "吐司Toast" ? "toast" : "breadOther";
+    if (top === "飲料Drink") return "drink";
+    if (top.indexOf("冷凍食品") === 0) return "frozen";
+    if (top === "蛋糕&慕斯Cake&Mousse") return "cake";
+    if (top === "餅乾&甜點Cookie&Sweet") return "sweet";
+    return "other";
+  }
+  // bigger orders get a slightly wider mix so bread stays around 55% overall
+  var FILL_SMALL = [["bread", 0.84], ["toast", 0.07], ["breadOther", 0.07], ["other", 0.02]];
+  var FILL_BIG = [["bread", 0.68], ["toast", 0.08], ["breadOther", 0.07], ["sweet", 0.11], ["other", 0.06]];
+  function planMix(d, pool, fixed, size) {
+    var groups = {};
+    pool.forEach(function (it) { var g = mixGroup(it); (groups[g] = groups[g] || []).push(it); });
+    var take = function (g) { var p = groups[g]; return p && p.length ? (bagOn() ? drawFromBag("mix-" + g, p) : pick(p)) : null; };
+    var extras = [];
+    if (Math.random() < 0.5) { extras.push("drink"); if (Math.random() < 0.15) extras.push("drink"); }
+    if (Math.random() < 1 / 9) extras.push("cake");
+    if (Math.random() < 1 / 12) extras.push("frozen");
+    if (Math.random() < 0.33) extras.push("sweet");
+    extras = extras.filter(function (g) { return groups[g]; }).sort(function () { return Math.random() - 0.5; }).slice(0, size);
+    var lines = [], left = size, tries = 0, FILL = size > 3 ? FILL_BIG : FILL_SMALL;
+    function add(it, qty) {
+      var line = { itemId: it.id, mods: randomMods(it, d.modChance), qty: qty };
+      var dup = lines.find(function (l) { return lineKey(l) === lineKey(line); });
+      if (dup && fixed) return false;
+      if (dup) dup.qty += qty; else lines.push(line);
+      left -= qty;
+      return true;
+    }
+    extras.forEach(function (g) { var it = take(g); if (it) add(it, 1); });
+    while (left > 0 && tries++ < 60) {
+      var r = Math.random(), g = "bread";
+      for (var i = 0, acc = 0; i < FILL.length; i++) { acc += FILL[i][1]; if (r < acc) { g = FILL[i][0]; break; } }
+      var it = take(g) || take("bread") || pick(pool);
+      // a few of the same bun is common; never for drinks
+      var qty = !fixed && g === "bread" && left >= 2 && Math.random() < 0.25 ? rand(2, Math.min(left, 3)) : 1;
+      add(it, qty);
+    }
+    return lines.sort(function () { return Math.random() - 0.5; });
+  }
+
   function planOrder(quiet) {
     var d = DIFF[$("difficulty").value], pool = practicePool(quiet);
     var fixed = $("order-size").value === "3";
+    if ($("exp-mix").checked) {
+      var mixed = planMix(d, pool, fixed && pool.length >= 3, fixed ? 3 : pickSize(d.sizes));
+      return { customer: pick(NAMES), lines: mixed, card: pick(CFG.cardTypes), settings: orderSettings() };
+    }
     var left = fixed ? 3 : pickSize(d.sizes), lines = [], tries = 0;
     while (left > 0 && tries++ < 50) {
       var it = bagOn() ? drawFromBag("practice", pool) : pickCommon(pool);
@@ -509,6 +564,12 @@
   $("order-size").onchange = function () {
     try { localStorage.setItem("jj-order-size", this.value); } catch (e) {}
     applyOrderSize();
+    if (state.mode === "practice") newOrder();
+  };
+
+  try { $("exp-mix").checked = localStorage.getItem("jj-exp-mix") === "on"; } catch (e) {}
+  $("exp-mix").onchange = function () {
+    try { localStorage.setItem("jj-exp-mix", this.checked ? "on" : "off"); } catch (e) {}
     if (state.mode === "practice") newOrder();
   };
 
