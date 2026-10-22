@@ -173,7 +173,7 @@
         var s = load(id), t = totals(s), a = accts.find(function (x) { return x.id === id; });
         s.learnedHere = learnedCount(id);
         var names = namesFor(combined(id));   // also covers items practiced on this person's other devices
-        return { id: id, name: a ? a.name : id, level: a ? a.level : "", device: device, stats: s, names: names,
+        return { id: id, name: a ? a.name : id, level: a ? a.level : "", device: device, deviceType: deviceType(), stats: s, names: names,
                  summary: { minutes: Math.round(s.time.total / 60), right: t.pct(t.right), wrong: t.pct(t.wrong), orders: s.practice.orders } };
       }) });
     }
@@ -183,6 +183,25 @@
     // e.g. after a refresh with nothing new.
     var sent = {};
     try { sent = JSON.parse(localStorage.getItem("jj-sync-sent")) || {}; } catch (e) {}
+    // e.g. "iPad · Safari", "Windows PC · Chrome" (from the browser's own description; nothing personal)
+    function deviceType() {
+      var ua = navigator.userAgent || "", os = "Other device", br = "Other browser";
+      var touchMac = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;   // iPads report themselves as Macs
+      if (/iPad/.test(ua) || touchMac) os = "iPad";
+      else if (/iPhone|iPod/.test(ua)) os = "iPhone";
+      else if (/Android/.test(ua)) os = /Mobile/.test(ua) ? "Android phone" : "Android tablet";
+      else if (/CrOS/.test(ua)) os = "Chromebook";
+      else if (/Windows/.test(ua)) os = "Windows PC";
+      else if (/Macintosh/.test(ua)) os = "Mac";
+      else if (/Linux/.test(ua)) os = "Linux PC";
+      if (/Edg\//.test(ua)) br = "Edge";
+      else if (/OPR\/|Opera/.test(ua)) br = "Opera";
+      else if (/SamsungBrowser/.test(ua)) br = "Samsung Internet";
+      else if (/CriOS|Chrome\//.test(ua)) br = "Chrome";
+      else if (/FxiOS|Firefox\//.test(ua)) br = "Firefox";
+      else if (/Safari\//.test(ua)) br = "Safari";
+      return os + " · " + br;
+    }
     // item name, type and display case as this version of the website has them
     function namesFor(s) {
       var names = {};
@@ -195,7 +214,7 @@
     function fingerprint(id) {
       var t = "", h = 5381;
       try { t = localStorage.getItem(key(id)) || ""; } catch (e) {}
-      try { t += JSON.stringify(namesFor(combined(id))); } catch (e) {}
+      try { t += JSON.stringify(namesFor(combined(id))) + deviceType(); } catch (e) {}
       for (var i = 0; i < t.length; i++) h = (h * 33 + t.charCodeAt(i)) | 0;
       return t.length + ":" + h;
     }
