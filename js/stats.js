@@ -214,7 +214,8 @@
     function fingerprint(id) {
       var t = "", h = 5381;
       try { t = localStorage.getItem(key(id)) || ""; } catch (e) {}
-      try { t += JSON.stringify(namesFor(combined(id))) + deviceType(); } catch (e) {}
+      // "v2": every device re-sends once so rows the old Sheet script dropped the device type from get it
+      try { t += JSON.stringify(namesFor(combined(id))) + deviceType() + "v2"; } catch (e) {}
       for (var i = 0; i < t.length; i++) h = (h * 33 + t.charCodeAt(i)) | 0;
       return t.length + ":" + h;
     }
