@@ -116,4 +116,10 @@ window.ITEM_NOTES = {
   "spicy-pig-ear": "Flat black rectangular tray with a white sticker that says 麻辣豬耳; sliced pig ear in red chili oil.",
   "smoked-duck-box": "Flat black rectangular tray with the purple 小雅屋 label on the lid (no check mark). Smoked duck pieces inside.",
   "fried-soy-sauce": "Tall frozen cup of brown minced meat sauce; check mark next to 炸醬 on the label.",
+  "spicy-stinky-tofu": "Tall frozen cup of red-brown chili broth; check mark next to 麻辣臭豆腐 on the label.",
+  "bamboo-shoot": "Frozen black-rimmed tray with a white sticker that says 滷筍乾; shredded bamboo shoots inside. The shelf tag just says 筍乾.",
+  "med-croissant": "Tied clear polka-dot bag of 5 medium croissants with the JJ logo.",
+  "red-bean-pastry-4": "Clear plastic box of 4 flat round pastries covered in white and black sesame seeds.",
+  "garlic-rolls-5": "Tied clear bag of 5 round glossy rolls with green parsley flakes on top. Same price as the butter rolls.",
+  "butter-rolls-5": "Tied clear bag of 5 round glossy rolls with white sesame seeds on top (no green). The parsley ones are garlic rolls.",
 };

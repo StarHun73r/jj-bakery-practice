@@ -169,7 +169,7 @@ window.DISPLAY_CASES = [
     rows: [
       {
         name: "Not placed yet",
-        items: ["plain-chiffon", "cupcake-4", "sponge-cake", "sweet-sesame-cake", "8-fruit-festival", "8-black-forest", "8-strawberry-creme", "8-tiramisu", "8-coffee-fruit", "8-coffee-straw", "8-mango-mousse", "daikon-pastry", "coffee-triangle", "8-taro-pudding", "8-vanilla-fruit", "8-choco-straw", "8-choco-coffee", "red-bean-mochi-box", "portugal-tart-1", "zongzi", "tw-date-egg", "tw-redbean-egg", "tw-mung-s", "tw-lava", "tw-veg-mung-l", "tw-mung-l", "tw-lotus-egg", "beef-soup-32", "beef-soup-64"],
+        items: ["plain-chiffon", "cupcake-4", "sponge-cake", "sweet-sesame-cake", "8-fruit-festival", "8-black-forest", "8-strawberry-creme", "8-tiramisu", "8-coffee-fruit", "8-coffee-straw", "8-mango-mousse", "daikon-pastry", "coffee-triangle", "8-taro-pudding", "8-vanilla-fruit", "8-choco-straw", "8-choco-coffee", "red-bean-mochi-box", "portugal-tart-1", "zongzi", "tw-date-egg", "tw-redbean-egg", "tw-mung-s", "tw-lava", "tw-veg-mung-l", "tw-mung-l", "tw-lotus-egg", "beef-soup-32", "beef-soup-64", "red-bean-pastry-4"],
       },
     ],
   },
