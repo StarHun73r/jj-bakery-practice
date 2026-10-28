@@ -208,4 +208,7 @@ window.FULL_NAMES = {
   "red-bean-pastry-4": "豆沙酥餅 (4入) Red Bean Pastry",
   "garlic-rolls-5": "大蒜小餐包 (5入) Garlic Dinner Roll (5pc)",
   "butter-rolls-5": "奶油小餐包(5入) Butter Dinner Roll (5pc)",
+  "egg-salad-sand": "蛋沙拉三明治 Egg Salad Sandwich",
+  "ham-egg-sand": "火腿蛋三明治 Ham & Egg Sandwich",
+  "garlic-stick": "香蒜條 Garlic Bread",
 };

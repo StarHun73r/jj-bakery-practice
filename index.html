@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>JJ Bakery Register Practice</title>
-  <link rel="stylesheet" href="css/style.css?v=cf6558c9">
+  <link rel="stylesheet" href="css/style.css?v=1c33b99e">
   <link rel="stylesheet" href="css/lock.css?v=8b8550a0">
 </head>
 <body>
@@ -181,6 +181,87 @@
           </div>
           <div class="grid" id="grid"></div>
         </section>
+        <!-- Item editor: opens beside the order when a ticket line is tapped -->
+        <div class="pop-shade hidden" id="pop-shade"></div>
+        <div class="item-pop hidden" id="item-pop">
+          <span class="ip-arrow" id="ip-arrow"></span>
+          <div class="ip-head">
+            <button class="link" id="ip-cancel">Cancel</button>
+            <div class="ip-title" id="ip-title"></div>
+            <button class="link" id="ip-apply">Apply</button>
+          </div>
+          <div class="ip-scroll">
+            <div class="ip-gap"></div>
+            <div class="ip-row ip-barcode"><span id="ip-barcode">BARCODE</span><span id="ip-price"></span></div>
+            <button class="ip-row" data-msg="Dining Type">Dining Type<span class="ip-chev">›</span></button>
+            <div class="ip-row">Quantity
+              <span class="ip-qty"><button id="ip-minus" aria-label="Less">−</button><span id="ip-q">1</span><button id="ip-plus" aria-label="More">+</button></span>
+            </div>
+            <button class="ip-row hidden" id="ip-mods">Options<span class="ip-chev">›</span></button>
+            <div class="ip-section">PRICING OPTIONS</div>
+            <button class="ip-row" data-msg="Discount Item">Discount Item<span class="ip-chev">›</span></button>
+            <div class="ip-row">Remove Tax<label class="ip-switch"><input type="checkbox" id="ip-notax"><span></span></label></div>
+            <button class="ip-row" data-msg="Copy">Copy</button>
+            <div class="ip-gap tall"></div>
+            <button class="ip-row ip-add" data-msg="Add Special Instructions"><span class="ip-plus">+</span>Add Special Instructions</button>
+            <div class="ip-gap tall"></div>
+            <button class="ip-row ip-remove" id="ip-remove">Remove Item</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Checkout: replaces the order screen after Pay -->
+      <div class="checkout hidden" id="checkout">
+        <div class="co-head">
+          <button class="link co-back" id="co-back"><svg viewBox="0 0 12 20" width="11"><path d="M10 2L2 10l8 8" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg> Back</button>
+          <div class="co-title">Checkout | Order # <span id="co-order"></span></div>
+          <button class="link" id="co-done" disabled>Done</button>
+        </div>
+        <div class="co-body">
+          <div class="co-left">
+            <div class="co-rows">
+              <div><span>Discounts:</span><span>$0.00</span></div>
+              <div><span>Service Fee(s):</span><span>$0.00</span></div>
+              <div><span>Sub Total:</span><span id="co-sub"></span></div>
+              <div><span>Surcharge:</span><span>$0.00</span></div>
+              <div><span>Tax:</span><span id="co-tax"></span></div>
+              <div><span>Autogratuity:</span><span class="co-blue">$0.00</span></div>
+            </div>
+            <div class="co-rows co-big">
+              <div><span>Sub Total:</span><strong id="co-total"></strong></div>
+              <div><span>Balance Due:</span><span class="co-due" id="co-due"></span></div>
+            </div>
+            <div class="co-payments" id="co-payments"></div>
+            <div class="co-tools">
+              <button class="tb" data-msg="Tip Amount"><svg viewBox="0 0 24 24"><ellipse cx="10" cy="5" rx="6" ry="2.5" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M4 5v4c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5V5M4 9v4c0 1.4 2.7 2.5 6 2.5M4 13v4c0 1.4 2.7 2.5 6 2.5" stroke="currentColor" stroke-width="1.4" fill="none"/><ellipse cx="16" cy="15" rx="5" ry="2" stroke="currentColor" stroke-width="1.4" fill="none"/><path d="M11 15v4c0 1.1 2.2 2 5 2s5-.9 5-2v-4" stroke="currentColor" stroke-width="1.4" fill="none"/></svg><span>Tip<br>Amount</span></button>
+              <button class="tb" data-msg="Gift Receipt"><svg viewBox="0 0 24 24"><path d="M3 9h18v4H3zM5 13h14v8H5zM12 9v12M12 9c-2-4-6-5-6-2s4 2 6 2c2 0 6 1 6-2s-4-2-6 2" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linejoin="round"/></svg><span>Gift<br>Receipt</span></button>
+              <button class="tb" data-msg="Email"><svg viewBox="0 0 24 24"><path d="M3 6h18v12H3zM3 6l9 7 9-7M3 18l7-6M21 18l-7-6" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linejoin="round"/></svg><span>Email</span></button>
+              <button class="tb" data-msg="Reprint"><svg viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 17H3V9h18v8h-3M6 14h12v7H6z" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linejoin="round"/></svg><span>Reprint</span></button>
+              <button class="tb" data-msg="Refund Payments"><svg viewBox="0 0 24 24"><path d="M5 12a7 7 0 107-7H8M8 2L5 5l3 3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Refund<br>Payments</span></button>
+              <button class="tb co-dim" data-msg="Redeem Points"><svg viewBox="0 0 24 24"><path d="M7 3h10v5a5 5 0 01-10 0zM7 5H4v2a3 3 0 003 3M17 5h3v2a3 3 0 01-3 3M12 13v4M8 21h8M9 17h6v4H9z" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linejoin="round"/></svg><span>Redeem<br>Points</span></button>
+            </div>
+          </div>
+          <div class="co-right">
+            <div class="co-amt-lbl">PAYMENT AMOUNT</div>
+            <div class="co-amt" id="co-amt">$0.00</div>
+            <div class="co-keys" id="co-keys">
+              <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button class="cash" data-k="10">$10</button>
+              <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button class="cash" data-k="20">$20</button>
+              <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button class="cash" data-k="50">$50</button>
+              <button data-k="C">C</button><button data-k="0">0</button><button data-k=".">.</button><button class="cash" data-k="del" aria-label="Delete"><svg viewBox="0 0 30 20" width="30"><path d="M9 2h18v16H9l-7-8z M14 6l8 8M22 6l-8 8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/></svg></button>
+            </div>
+            <div class="co-methods">
+              <button id="co-cash">Cash</button><button id="co-credit">Credit +</button><button id="co-check">Check</button>
+            </div>
+          </div>
+        </div>
+        <div class="co-shade hidden" id="co-dialog">
+          <div class="co-dialog">
+            <div class="co-dlg-head">Select a Payment Method</div>
+            <div class="co-cards" id="co-cards"></div>
+            <div class="co-dlg-foot"><button id="co-cancel">Cancel</button><button id="co-ok">OK</button></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -263,22 +344,6 @@
     </aside>
   </div>
 
-  <!-- Tap a line on the ticket -->
-  <div class="overlay hidden" id="line-overlay">
-    <div class="modal small">
-      <h2 id="line-title"></h2>
-      <div class="qty-row">
-        <button class="round" id="line-minus">−</button>
-        <span id="line-qty">1</span>
-        <button class="round" id="line-plus">+</button>
-      </div>
-      <div class="modal-foot">
-        <button class="tbtn danger" id="line-del">Delete</button>
-        <button class="tbtn hidden" id="line-mod">Modify</button>
-        <button class="tbtn primary" id="line-done">Done</button>
-      </div>
-    </div>
-  </div>
 
   <!-- Modifier (option) popup -->
   <div class="overlay hidden" id="mod-overlay">
@@ -295,16 +360,6 @@
     </div>
   </div>
 
-  <!-- Payment -->
-  <div class="overlay hidden" id="pay-overlay">
-    <div class="modal">
-      <div class="modal-head">
-        <h2>Payment</h2>
-        <span class="muted">Total <strong id="pay-total"></strong></span>
-      </div>
-      <div id="pay-body"></div>
-    </div>
-  </div>
 
   <!-- Practice result -->
   <div class="overlay hidden" id="result-overlay">
@@ -363,13 +418,13 @@
 
   <div class="toast hidden" id="toast"></div>
 
-  <script src="js/menu-data.js?v=cf753803"></script>
-  <script src="js/photos-manifest.js?v=4e9a6dfd"></script>
-  <script src="js/photo-sources.js?v=50889b3c"></script>
-  <script src="js/full-names.js?v=278866e6"></script>
+  <script src="js/menu-data.js?v=880a3095"></script>
+  <script src="js/photos-manifest.js?v=83ffe631"></script>
+  <script src="js/photo-sources.js?v=f75f5cfb"></script>
+  <script src="js/full-names.js?v=3ce906f2"></script>
   <script src="js/display-cases.js?v=9d41b98e"></script>
-  <script src="js/notes.js?v=ee639c14"></script>
-  <script src="js/app.js?v=0a71062e"></script>
+  <script src="js/notes.js?v=e7ae17ab"></script>
+  <script src="js/app.js?v=2d387b21"></script>
   <script src="js/sync-config.js?v=c83f5ef1"></script>
   <script src="js/stats.js?v=8ac89d86"></script>
   <script src="js/site-notes.js?v=cc05b2c4"></script>

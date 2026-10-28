@@ -26,7 +26,7 @@ window.MENU_CONFIG = {
   taxRate: 0,
   staffName: "Morning S.",
   orderType: "Take Out",
-  cardTypes: ["Visa", "Mastercard", "Discover", "Amex"],   // 3rd one is a guess
+  cardTypes: ["VISA", "MASTERCARD", "DISCOVER", "AMEX"],   // as the Credit + dialog spells them
 };
 
 var BLUE = "#1d9bd7", ORANGE = "#f57b26", RED = "#e8394f", INDIGO = "#3c55b9", YELLOW = "#f6b40e", PURPLE = "#9b6fd4", GREEN = "#7cc242";
@@ -39,7 +39,7 @@ window.MENU_TREE = [
     F("麵包Bread", [
       // page 1
       I("pineapple-bun",       "菠蘿麵包 Pineapple Bun", 1.90),
-      I("garlic-stick",        "香蒜條 Garlic stic", 0),             // end hidden by glare in the photo
+      I("garlic-stick",        "香蒜條 Garlic stic", 1.95),             // end hidden by glare in the photo
       I("corn-bun",            "玉米麵包 Corn Bun", 0),
       I("custard-bun",         "克林姆麵包Custard Bun", 2.00),
       I("pine-bun-coconut",    "椰子菠蘿 Pine. Bun w/Cocon...", 2.00),
@@ -79,7 +79,7 @@ window.MENU_TREE = [
       I("walnut-wheat",        "德式核果 Wheat B. w/Walnut", 2.65),
       I("brown-sugar-walnut",  "紅糖核桃 Brown Sugar Br...", 2.65),
       I("scallion-bun",        "蔥花麵包 Scallion Bun", 2.70),
-      I("seaweed-roll",        "海苔卷 Seaweed Roll", 3.00),
+      I("seaweed-roll",        "海苔卷 Seaweed Roll", 3.00, { barcode: "TR-1-S-18-007" }),   // barcode from the item editor photo
       I("cranberry-cheese",    "蔓越莓乳酪 Cranberr...", 3.00),
       I("euro-walnut",         "北歐堅果 Euro Walnut", 3.00),
       I("butter-rolls-5",      "奶油小餐包 (x5)Butt...", 3.55),
@@ -148,8 +148,8 @@ window.MENU_TREE = [
     F("三明治Sandwich", [
       I("egg-cheese-sand",     "起司蛋三明治Egg & Chees", 0),       // end hidden by glare
       I("ham-cheese-sand",     "火腿起司三明治 Ham & C...", 3.30),
-      I("egg-salad-sand",      "蛋沙拉三明治Egg Salad Sa...", 0),
-      I("ham-egg-sand",        "火腿蛋三明治Ham & Egg S...", 0),
+      I("egg-salad-sand",      "蛋沙拉三明治Egg Salad Sa...", 3.30),
+      I("ham-egg-sand",        "火腿蛋三明治Ham & Egg S...", 3.30),
       I("fried-egg-sand",      "荷包蛋三明治Pan Fried Eg...", 3.30),
       I("tuna-sand",           "鮪魚三明治Tuna Sandwich", 3.30),
       I("pork-sand",           "台式豬肉三明治 Signatur...", 0),

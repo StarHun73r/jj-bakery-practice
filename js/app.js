@@ -36,6 +36,8 @@
     search: null,        // search text when searching
     ticket: [],          // [{itemId, mods:[{group, option}], qty}]
     lineIdx: -1,         // ticket line being edited
+    lineDraft: null,     // item editor changes waiting for Apply
+    checkout: null,      // checkout screen: { order, total, payments, entry, card }
     editing: null,       // modifier popup state
     practice: null,
     guide: null,         // item id the yellow highlights are leading to
@@ -253,12 +255,22 @@
     box.innerHTML = state.ticket.length ? "" : "<div class='empty'>Select items to add to the order</div>";
     state.ticket.forEach(function (l, i) {
       var it = ITEMS[l.itemId];
+      var wrap = document.createElement("div");
+      wrap.className = "line-wrap";
+      var del = document.createElement("button");
+      del.className = "line-del";
+      del.textContent = "Remove";
+      del.onclick = function () { removeLine(i); };
+      // Same columns as the store's iPad: name, quantity, each, line total
       var row = document.createElement("div");
-      row.className = "line";
-      row.innerHTML = "<span class='q'>" + l.qty + "</span><span>" + esc(it.full) + "</span><span>" +
-        money(unitPrice(l) * l.qty) + "</span>" + (l.mods.length ? "<span class='mods'>" + esc(modText(l.mods)) + "</span>" : "");
-      row.onclick = function () { openLine(i); };
-      box.appendChild(row);
+      row.className = "line" + (state.lineIdx === i && !$("item-pop").classList.contains("hidden") ? " sel" : "");
+      row.innerHTML = "<span class='nm'>" + esc(it.full) + "</span><span class='q'>" + l.qty + "</span><span>" +
+        money(unitPrice(l)) + "</span><span>" + money(unitPrice(l) * l.qty) + "</span>" +
+        (l.mods.length ? "<span class='mods'>" + esc(modText(l.mods)) + "</span>" : "");
+      swipeable(row, i);
+      wrap.appendChild(del);
+      wrap.appendChild(row);
+      box.appendChild(wrap);
     });
     var t = totals();
     var n = state.ticket.reduce(function (s, l) { return s + l.qty; }, 0);
@@ -272,15 +284,86 @@
     $("send-btn").classList.toggle("ready", n > 0);
   }
 
+  // Swipe a line to the left to show Remove; a long swipe removes it straight away.
+  var REVEAL = 92;
+  function swipeable(row, i) {
+    var x0 = null, y0 = 0, dx = 0, dragging = false, moved = false;
+    var open = function () { return row.classList.contains("open"); };
+    // Follow the pointer on the window so the swipe keeps going if it slides off the row.
+    var move = function (e) {
+      var mx = e.clientX - x0, my = e.clientY - y0;
+      if (!dragging) {
+        if (Math.abs(mx) < 8 || Math.abs(mx) < Math.abs(my)) return;
+        dragging = moved = true;
+        row.style.transition = "none";
+      }
+      dx = Math.min(0, mx + (open() ? -REVEAL : 0));
+      row.style.transform = "translateX(" + dx + "px)";
+    };
+    var end = function () {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", end);
+      window.removeEventListener("pointercancel", end);
+      if (!dragging) return;
+      row.style.transition = "";
+      if (-dx > row.offsetWidth * 0.6) { row.style.transform = "translateX(-100%)"; return setTimeout(function () { removeLine(i); }, 160); }
+      row.classList.toggle("open", -dx > REVEAL / 2);
+      row.style.transform = "";
+    };
+    row.addEventListener("pointerdown", function (e) {
+      x0 = e.clientX; y0 = e.clientY; dx = 0; dragging = false; moved = false;
+      window.addEventListener("pointermove", move);
+      window.addEventListener("pointerup", end);
+      window.addEventListener("pointercancel", end);
+    });
+    row.addEventListener("click", function () {
+      if (moved) { moved = false; return; }
+      if (open()) { row.classList.remove("open"); return; }
+      openLine(i);
+    });
+  }
+
+  function removeLine(i) {
+    state.ticket.splice(i, 1);
+    closeLine();
+  }
+
+  // Item editor. Changes are a draft until Apply; Cancel (or tapping outside) drops them.
   function openLine(i) {
     state.lineIdx = i;
-    var l = state.ticket[i];
-    $("line-title").textContent = ITEMS[l.itemId].full;
-    $("line-qty").textContent = l.qty;
-    $("line-mod").classList.toggle("hidden", !ITEMS[l.itemId].modifiers.length);
-    $("line-overlay").classList.remove("hidden");
+    var l = state.ticket[i], it = ITEMS[l.itemId];
+    state.lineDraft = { qty: l.qty, noTax: !!l.noTax };
+    $("ip-title").textContent = it.full;
+    $("ip-barcode").textContent = "BARCODE" + (it.barcode ? " " + it.barcode : "");
+    $("ip-price").textContent = money(unitPrice(l));
+    $("ip-q").textContent = l.qty;
+    $("ip-notax").checked = !!l.noTax;
+    $("ip-mods").classList.toggle("hidden", !it.modifiers.length);
+    $("item-pop").classList.remove("hidden");
+    $("pop-shade").classList.remove("hidden");
+    renderTicket();
+    placePop();
   }
-  function closeLine() { $("line-overlay").classList.add("hidden"); renderTicket(); }
+  // Point the editor's arrow at the line that was tapped.
+  function placePop() {
+    var pop = $("item-pop"), row = $("lines").querySelector(".line.sel");
+    if (!row || pop.classList.contains("hidden")) return;
+    var top = row.getBoundingClientRect(), box = pop.getBoundingClientRect();
+    var y = Math.max(18, Math.min(box.height - 18, top.top + top.height / 2 - box.top));
+    $("ip-arrow").style.top = y + "px";
+  }
+  function closeLine() {
+    $("item-pop").classList.add("hidden");
+    $("pop-shade").classList.add("hidden");
+    state.lineDraft = null;
+    renderTicket();
+  }
+  function applyLine() {
+    var l = state.ticket[state.lineIdx];
+    l.qty = state.lineDraft.qty;
+    l.noTax = state.lineDraft.noTax;
+    closeLine();
+  }
 
   // ------------------------------------------------------------------
   //  Modifier popup (for items with options)
@@ -354,53 +437,108 @@
       var res = checkOrder();
       if (!res.perfect) return showResult(res);
     }
-    $("pay-total").textContent = money(totals().total);
-    renderPayMethods();
-    $("pay-overlay").classList.remove("hidden");
+    var t = totals();
+    state.checkout = { order: rand(12000000, 12999999), total: t.total, sub: t.sub, tax: t.tax, payments: [], entry: null, card: null };
+    $("co-order").textContent = state.checkout.order;
+    $("co-dialog").classList.add("hidden");
+    renderCheckout();
+    $("checkout").classList.remove("hidden");
+    document.querySelector(".ipad .screen").classList.add("hidden");
   }
 
-  // The store only takes cards.
-  function renderPayMethods() {
-    $("pay-body").innerHTML = "<div class='pay-methods'><button class='big-btn' id='pm-card'>Card</button></div>" +
-      "<div class='modal-foot'><button class='tbtn' id='pay-cancel'>Back</button></div>";
-    $("pm-card").onclick = renderCardTypes;
-    $("pay-cancel").onclick = closePay;
+  function balanceCents() {
+    var co = state.checkout;
+    return Math.round(co.total * 100) - co.payments.reduce(function (s, p) { return s + p.cents; }, 0);
+  }
+  // What the big PAYMENT AMOUNT shows: what was typed on the keypad, or else the balance.
+  function entryCents() {
+    var co = state.checkout;
+    return co.entry === null ? balanceCents() : Math.round((parseFloat(co.entry) || 0) * 100);
   }
 
-  function renderCardTypes() {
-    $("pay-body").innerHTML = "<p>Card type:</p><div class='pay-methods' id='card-types'></div>" +
-      "<div class='modal-foot'><button class='tbtn' id='pay-back'>Back</button></div>";
+  function renderCheckout() {
+    var co = state.checkout, due = balanceCents();
+    $("co-sub").textContent = money(co.sub);
+    $("co-tax").textContent = money(co.tax);
+    $("co-total").textContent = money(co.total);
+    $("co-due").textContent = money(due / 100);
+    $("co-amt").textContent = co.entry === null ? money(due / 100) : "$" + (co.entry || "0");
+    $("co-amt").classList.toggle("typed", co.entry !== null);
+    $("co-done").disabled = due > 0;
+    $("co-payments").innerHTML = co.payments.length ? co.payments.map(function (p) {
+      return "<div class='co-pay'><span>" + esc(p.type) + "</span><span>" + money(p.cents / 100) + "</span></div>";
+    }).join("") : "<div class='co-none'>No payments have been made</div>";
+  }
+
+  function keypad(k) {
+    var co = state.checkout, e = co.entry === null ? "" : co.entry;
+    if (k === "C") e = "";
+    else if (k === "del") e = e.slice(0, -1);
+    else if (k === "10" || k === "20" || k === "50") e = k;
+    else if (k === ".") { if (e.indexOf(".") < 0) e = (e || "0") + "."; }
+    else if (!/\.\d\d$/.test(e) && e.length < 8) e = (e === "0" ? "" : e) + k;
+    co.entry = e;
+    renderCheckout();
+  }
+
+  // Credit + asks which card the customer is using.
+  function openCardDialog() {
+    if (balanceCents() <= 0 || entryCents() <= 0) return;
+    state.checkout.card = null;
+    $("co-cards").innerHTML = "";
     CFG.cardTypes.forEach(function (type) {
       var b = document.createElement("button");
-      b.className = "big-btn card-type";
-      b.textContent = type;
-      b.onclick = function () { finishPay(type); };
-      $("card-types").appendChild(b);
+      b.className = "co-card";
+      b.innerHTML = "<span class='radio'></span>" + esc(type);
+      b.onclick = function () {
+        state.checkout.card = type;
+        [].forEach.call($("co-cards").children, function (x) { x.classList.toggle("on", x === b); });
+      };
+      $("co-cards").appendChild(b);
     });
-    $("pay-back").onclick = renderPayMethods;
+    $("co-dialog").classList.remove("hidden");
   }
 
-  function finishPay(type) {
-    var p = state.practice;
+  function takeCard() {
+    var co = state.checkout, p = state.practice, type = co.card;
+    if (!type) return;
+    $("co-dialog").classList.add("hidden");
     if (p && type !== p.card) {
       p.cardMistakes++;
-      $("pay-body").innerHTML = "<p class='note res-bad'>The customer's card is " + esc(p.card) + ", not " + esc(type) + ".</p>" +
-        "<div class='modal-foot'><button class='tbtn' id='pay-anyway'>Finish anyway</button>" +
-        "<button class='tbtn primary' id='pay-fix'>Go back and fix</button></div>";
-      $("pay-fix").onclick = renderCardTypes;
-      $("pay-anyway").onclick = function () { closePay(); completeOrder(); };
-      return;
+      toast("Wrong card: the customer is paying with " + p.card);
     }
-    $("pay-body").innerHTML = "<div class='change'>" + esc(type) + " approved</div>" +
-      (p ? "<p class='note res-ok'>Right card type.</p>" : "") +
-      "<div class='modal-foot'><button class='tbtn primary' id='pay-done'>Done</button></div>";
-    $("pay-done").onclick = function () {
-      closePay();
-      if (state.practice) completeOrder();
-      else { state.ticket = []; renderTicket(); state.path = []; renderMenu(); }
-    };
+    co.payments.push({ type: type, cents: Math.min(entryCents(), balanceCents()) });
+    co.entry = null;
+    renderCheckout();
   }
-  function closePay() { $("pay-overlay").classList.add("hidden"); }
+
+  function closePay() {
+    $("checkout").classList.add("hidden");
+    $("co-dialog").classList.add("hidden");
+    document.querySelector(".ipad .screen").classList.remove("hidden");
+  }
+
+  function finishCheckout() {
+    if (balanceCents() > 0) return;
+    closePay();
+    state.checkout = null;
+    if (state.practice) completeOrder();
+    else { state.ticket = []; renderTicket(); state.path = []; renderMenu(); }
+  }
+
+  $("co-keys").addEventListener("click", function (e) {
+    var b = e.target.closest("button");
+    if (b) keypad(b.dataset.k);
+  });
+  $("co-credit").onclick = openCardDialog;
+  $("co-cash").onclick = $("co-check").onclick = function () { toast("JJ Bakery only takes cards: use Credit +"); };
+  $("co-cancel").onclick = function () { $("co-dialog").classList.add("hidden"); };
+  $("co-ok").onclick = takeCard;
+  $("co-done").onclick = finishCheckout;
+  $("co-back").onclick = function () {
+    if (state.checkout.payments.length) return toast("A payment is already in. Press Done to finish.");
+    closePay();
+  };
 
   // ------------------------------------------------------------------
   //  Practice mode
@@ -1118,6 +1256,8 @@
   //  Wiring
   // ------------------------------------------------------------------
   function setMode(mode) {
+    closePay(); state.checkout = null;
+    $("item-pop").classList.add("hidden"); $("pop-shade").classList.add("hidden");
     state.mode = mode;
     state.guide = null;
     $("bag-left").textContent = "";
@@ -1420,18 +1560,23 @@
   });
 
   $("pay-btn").onclick = openPay;
-  $("line-plus").onclick = function () { $("line-qty").textContent = ++state.ticket[state.lineIdx].qty; };
-  $("line-minus").onclick = function () {
-    var l = state.ticket[state.lineIdx];
-    if (--l.qty <= 0) { state.ticket.splice(state.lineIdx, 1); closeLine(); }
-    else $("line-qty").textContent = l.qty;
+  $("ip-plus").onclick = function () { $("ip-q").textContent = ++state.lineDraft.qty; };
+  $("ip-minus").onclick = function () {
+    if (state.lineDraft.qty > 1) $("ip-q").textContent = --state.lineDraft.qty;
   };
-  $("line-del").onclick = function () { state.ticket.splice(state.lineIdx, 1); closeLine(); };
-  $("line-done").onclick = closeLine;
-  $("line-mod").onclick = function () {
-    $("line-overlay").classList.add("hidden");
-    openMods(ITEMS[state.ticket[state.lineIdx].itemId], state.lineIdx);
+  $("ip-notax").onchange = function () { state.lineDraft.noTax = this.checked; };
+  $("ip-remove").onclick = function () { removeLine(state.lineIdx); };
+  $("ip-apply").onclick = applyLine;
+  $("ip-cancel").onclick = closeLine;
+  $("pop-shade").onclick = closeLine;
+  $("ip-mods").onclick = function () {
+    var i = state.lineIdx;
+    applyLine();
+    openMods(ITEMS[state.ticket[i].itemId], i);
   };
+  document.querySelectorAll("#item-pop [data-msg], #checkout [data-msg]").forEach(function (b) {
+    b.onclick = function () { toast(b.dataset.msg + " isn't simulated yet"); };
+  });
   $("mod-ok").onclick = confirmMods;
   $("mod-cancel").onclick = closeMods;
 
