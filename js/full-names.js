@@ -197,4 +197,11 @@ window.FULL_NAMES = {
   "cheese-toast": "起司土司片 Baked Cheese Toast",
   "danish-raisin": "丹麥葡萄乾 Raisin Danish",
   "choc-strawberry": "巧克力草莓丹麥 Chocolate Strawberry Danish",
+  "egg-salad-bun": "蛋沙拉麵包 Egg Salad Bun",
+  "sea-salt-4": "海鹽麵包 (x4) Sea Salt Butter Roll (x4)",
+  "beef-soup-32": "紅燒牛肉麵湯底(小) Beef Stew with Soup (small)",
+  "beef-soup-64": "紅燒牛肉麵湯底 Beef Stew with Soup (large)",
+  "lamb-soup": "羊肉爐 Lamb Soup",
+  "spicy-pig-ear": "麻辣豬耳 Spicy Pig Ear",
+  "smoked-duck-box": "燻鴨 Smoked Duck",
 };
