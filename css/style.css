@@ -454,12 +454,12 @@ body.notes .ipad { display: none; }
 /* ---------- ticket lines: name, qty, each, total; swipe left to remove ---------- */
 .line-wrap { position: relative; overflow: hidden; border-bottom: 1px solid #dde6ea; }
 .line-wrap .line { border-bottom: 0; }
-.line { grid-template-columns: minmax(0, 1fr) 30px 64px 64px; position: relative; background: var(--screen); touch-action: pan-y; transition: transform .18s ease; user-select: none; }
+.line { grid-template-columns: minmax(0, 1fr) auto; position: relative; background: var(--screen); touch-action: pan-y; transition: transform .18s ease; user-select: none; }
 .line > span:nth-child(n+2) { text-align: right; }
-.line .q { color: inherit; font-weight: 400; text-align: center !important; }
 .line .mods { grid-column: 1 / -1; text-align: left !important; }
 .line.sel { background: #f5e4e8; }
 .line.open { transform: translateX(-92px); }
+.line-wrap:not(:has(.line.open, .line[style*="translate"])) .line-del { visibility: hidden; }
 .line-del { position: absolute; top: 0; right: 0; bottom: 0; width: 92px; border: 0; background: #e5383b; color: #fff; font: inherit; }
 
 /* ---------- item editor (beside the order list) ---------- */

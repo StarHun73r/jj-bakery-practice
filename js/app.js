@@ -261,11 +261,10 @@
       del.className = "line-del";
       del.textContent = "Remove";
       del.onclick = function () { removeLine(i); };
-      // Same columns as the store's iPad: name, quantity, each, line total
+      // Like the store's iPad: just the name and the line total (price x quantity)
       var row = document.createElement("div");
       row.className = "line" + (state.lineIdx === i && !$("item-pop").classList.contains("hidden") ? " sel" : "");
-      row.innerHTML = "<span class='nm'>" + esc(it.full) + "</span><span class='q'>" + l.qty + "</span><span>" +
-        money(unitPrice(l)) + "</span><span>" + money(unitPrice(l) * l.qty) + "</span>" +
+      row.innerHTML = "<span class='nm'>" + esc(it.full) + "</span><span>" + money(unitPrice(l) * l.qty) + "</span>" +
         (l.mods.length ? "<span class='mods'>" + esc(modText(l.mods)) + "</span>" : "");
       swipeable(row, i);
       wrap.appendChild(del);

@@ -17,7 +17,7 @@
   var PIN_HASH = "9bafd90d", PIN_MAX = 8;   // the PIN length is never shown; Enter checks it
   var pinFor = null, pinDirs = null, pin = [];   // set while the Admin Login step is showing
   var title = lock.querySelector("h1"), hint = lock.querySelector(".lock-box > p");
-  var arrowPad = lock.querySelector(".lock-pad"), wip = lock.querySelector(".lock-wip");
+  var arrowPad = lock.querySelector(".lock-pad"), wip = lock.querySelector(".lock-wip"), phone = lock.querySelector(".lock-phone");
   var numPad = document.createElement("div");
   numPad.className = "lock-pad num-pad";
   numPad.hidden = true;
@@ -65,6 +65,7 @@
     hint.textContent = acct ? "Enter the admin PIN." : "Enter the 8-arrow code to continue.";
     arrowPad.hidden = !!acct; numPad.hidden = !acct;
     if (wip) wip.hidden = !!acct;
+    if (phone) phone.hidden = !!acct;
     drawDots();
   }
   function shake() {

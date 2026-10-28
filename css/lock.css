@@ -30,3 +30,6 @@ body.locked > :not(.lock):not(script) { visibility: hidden; }
 .lock-pad.num-pad .num-back { grid-column: 1 / 4; }
 .lock-pad .num-enter { background: #1d9bd7; font-size: 1rem; }
 .lock-dots { min-height: 18px; }
+/* Phone warning under the arrow pad */
+.lock-box p.lock-phone { max-width: 260px; font-size: .8rem; color: #ff6b6b; }
+.lock-phone[hidden] { display: none; }
