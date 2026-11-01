@@ -156,7 +156,7 @@ window.DISPLAY_CASES = [
       },
       {
         name: "Sandwich",
-        items: ["ham-cheese-sand", "fried-egg-sand", "tuna-sand"],
+        items: ["ham-cheese-sand", "egg-salad-sand", "ham-egg-sand", "fried-egg-sand", "tuna-sand"],
       },
     ],
   },
