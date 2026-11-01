@@ -527,8 +527,9 @@ button.ip-row { cursor: pointer; }
 .co-amt { text-align: right; font-size: 6.1cqw; line-height: 1; color: #9aa5ab; font-weight: 300; margin: .6cqw 0 6.45cqw; font-variant-numeric: tabular-nums; }
 .co-amt.typed { color: #333; }
 .co-keys { display: grid; grid-template-columns: repeat(4, 7.75cqw); grid-auto-rows: 7.75cqw; gap: 1.6cqw; justify-content: end; }
-.co-keys button { border: 1px solid #b6c3c9; border-radius: .3cqw; background: linear-gradient(#e8eef1, #d5dee2); font-size: 3.15cqw; color: #333; box-shadow: 0 1px 1px rgba(0,0,0,.15); padding: 0; }
-.co-keys button.cash { color: var(--blue); background: linear-gradient(#e6f0f6, #d4e3ec); font-size: 2.3cqw; }
+/* key colors sampled from the photo: flat gray at ~92% of the screen color, sharp 1px outline at ~65%, no shadow */
+.co-keys button { border: 1px solid #959ea3; border-radius: .3cqw; background: linear-gradient(#d7dcdf, #dde2e4); font-size: 3.5cqw; font-weight: 400; color: #333; box-shadow: none; padding: 0; }
+.co-keys button.cash { color: var(--blue); background: linear-gradient(#d2d9e1, #d8dfe6); font-size: 2.3cqw; }
 .co-keys button svg { width: 2.6cqw; height: auto; }
 .co-keys button:active, .co-methods button:active { filter: brightness(.9); }
 .co-methods { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5cqw; width: 35.8cqw; margin: .9cqw 0 0 auto; padding: 1.7cqw .4cqw 0; border-top: 1px solid #d0d9dd; box-sizing: border-box; }
