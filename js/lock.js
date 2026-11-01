@@ -13,7 +13,7 @@
   var KEYS = { ArrowUp: "up", ArrowDown: "down", ArrowLeft: "left", ArrowRight: "right" };
   var lock = document.getElementById("lock"), dots = document.getElementById("lock-dots");
   var entered = [], locked = false, lastActive = Date.now();
-  // Owner account only, after the arrow code: first a letter PIN on a phone-style keypad,
+  // Owner account only, after the arrow code: first a letter PIN on an A-Z keyboard,
   // then a number PIN. Only hashes are kept here, and neither PIN's length is shown.
   var LETTER_HASH = "e7affe6d", PIN_HASH = "9bafd90d", PIN_MAX = 8;
   var pinFor = null, pinDirs = null, pin = [];   // set while an Admin Login step is showing
@@ -27,18 +27,15 @@
     "<button class='lock-clear num-clear' data-clear='1'>Clear</button><button data-num='0'>0</button><button class='num-enter' data-enter='1'>Enter</button>" +
     "<button class='lock-clear num-back' data-back='1'>Back</button>";
   arrowPad.parentNode.insertBefore(numPad, arrowPad.nextSibling);
-  // Phone keypad letters: tap a key again to move to its next letter (2, 2 = B).
-  var PHONE = { 2: "ABC", 3: "DEF", 4: "GHI", 5: "JKL", 6: "MNO", 7: "PQRS", 8: "TUV", 9: "WXYZ" };
+  // Letter step: a full A-Z keyboard in the usual QWERTY rows.
   var letPad = document.createElement("div");
-  letPad.className = "lock-pad num-pad let-pad";
+  letPad.className = "let-pad";
   letPad.hidden = true;
-  letPad.innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(function (n) {
-    return "<button data-key='" + n + "'>" + n + "<small>" + (PHONE[n] || "&nbsp;") + "</small></button>";
+  letPad.innerHTML = ["QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM"].map(function (row) {
+    return "<div class='let-row'>" + row.split("").map(function (c) { return "<button data-letter='" + c + "'>" + c + "</button>"; }).join("") + "</div>";
   }).join("") +
-    "<button class='lock-clear num-clear' data-clear='1'>Clear</button><button data-key='0'>0<small>&nbsp;</small></button><button class='num-enter' data-enter='1'>Enter</button>" +
-    "<button class='lock-clear num-back' data-back='1'>Back</button>";
+    "<div class='let-row let-actions'><button class='lock-clear' data-clear='1'>Clear</button><button class='lock-clear' data-back='1'>Back</button><button class='num-enter' data-enter='1'>Enter</button></div>";
   arrowPad.parentNode.insertBefore(letPad, numPad);
-  var tapKey = null, tapIdx = 0, tapTimer = null;   // the letter still being cycled
 
   function lockHash(s) {
     var x = 0x811c9dc5;
@@ -68,17 +65,14 @@
 
   function drawDots() {
     var html = "";
-    // PIN steps: one dot per character typed so far, so the length stays hidden;
-    // the letter still being picked on the phone keypad shows as itself
+    // PIN steps: one dot per character typed so far, so the length stays hidden
     var len = pinFor ? pin.length : LENGTH, n = pinFor ? pin.length : entered.length;
     for (var i = 0; i < len; i++) html += "<span" + (i < n ? " class='on'" : "") + "></span>";
-    if (step === "letters" && tapKey) html += "<b class='lock-letter'>" + PHONE[tapKey][tapIdx] + "</b>";
     dots.innerHTML = html;
   }
   function showStep(acct, dirs, which) {
     pinFor = acct || null; pinDirs = acct ? dirs : null; pin = [];
     step = acct ? which || "letters" : null;
-    commitLetter(true);
     title.textContent = acct ? "Admin Login" : "JJ Bakery";
     hint.textContent = step === "letters" ? "Enter the admin letters." : step === "pin" ? "Enter the admin PIN." : "Enter the 8-arrow code to continue.";
     arrowPad.hidden = !!acct;
@@ -88,38 +82,22 @@
     if (phone) phone.hidden = !!acct;
     drawDots();
   }
-  // Letter step: the same key again moves to its next letter; a pause, another key or Enter keeps it.
-  function commitLetter(drop) {
-    clearTimeout(tapTimer);
-    if (tapKey && !drop && pin.length < PIN_MAX) pin.push(PHONE[tapKey][tapIdx]);
-    tapKey = null;
-  }
-  function tapLetterKey(k) {
-    if (step !== "letters" || !PHONE[k]) return;
-    if (tapKey === k) tapIdx = (tapIdx + 1) % PHONE[k].length;
-    else { commitLetter(); tapKey = k; tapIdx = 0; }
-    clearTimeout(tapTimer);
-    tapTimer = setTimeout(function () { commitLetter(); drawDots(); }, 1000);
-    drawDots();
-  }
-  function typeLetter(ch) {   // a computer keyboard can type the letter straight away
-    if (step !== "letters") return;
-    commitLetter();
-    if (pin.length < PIN_MAX) pin.push(ch.toUpperCase());
+  function typeLetter(ch) {
+    if (step !== "letters" || pin.length >= PIN_MAX) return;
+    pin.push(ch.toUpperCase());
     drawDots();
   }
   function enterLetters() {
-    commitLetter();
-    if (!pin.length) { shake(); drawDots(); return; }
+    if (!pin.length) { shake(); return; }
     var ok = lockHash("jj-bakery-letters|" + pin.join("")) === LETTER_HASH;
     if (ok) { showStep(pinFor, pinDirs, "pin"); return; }
     // wrong letters: start over from the arrow code
     shake();
     setTimeout(function () { showStep(null); }, 350);
   }
-  letPad.querySelectorAll("[data-key]").forEach(function (b) { b.onclick = function () { tapLetterKey(b.dataset.key); }; });
+  letPad.querySelectorAll("[data-letter]").forEach(function (b) { b.onclick = function () { typeLetter(b.dataset.letter); }; });
   letPad.querySelector("[data-enter]").onclick = enterLetters;
-  letPad.querySelector("[data-clear]").onclick = function () { commitLetter(true); pin = []; drawDots(); };
+  letPad.querySelector("[data-clear]").onclick = function () { pin = []; drawDots(); };
   letPad.querySelector("[data-back]").onclick = function () { showStep(null); };
   function shake() {
     lock.classList.remove("wrong");
@@ -190,9 +168,8 @@
     e.stopPropagation();
     if (step === "letters") {
       if (/^[a-z]$/i.test(e.key) && !e.repeat) typeLetter(e.key);
-      else if (/^[2-9]$/.test(e.key) && !e.repeat) tapLetterKey(e.key);
       else if (e.key === "Enter") enterLetters();
-      else if (e.key === "Backspace") { commitLetter(true); pin = []; drawDots(); }
+      else if (e.key === "Backspace") { pin = []; drawDots(); }
       else if (e.key === "Escape") showStep(null);
       return;
     }

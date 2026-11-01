@@ -33,7 +33,14 @@ body.locked > :not(.lock):not(script) { visibility: hidden; }
 /* Phone warning under the arrow pad */
 .lock-box p.lock-phone { max-width: 260px; font-size: .8rem; color: #ff6b6b; }
 .lock-phone[hidden] { display: none; }
-/* Admin Login letter step: phone-style keys, digit on top and its letters underneath */
-.lock-pad.let-pad button[data-key] { display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.05; }
-.let-pad small { font-size: .62rem; letter-spacing: .14em; color: #b8c0c8; margin-top: 3px; }
-.lock-letter { color: #1d9bd7; font-size: 1.15rem; line-height: 18px; min-width: 14px; text-align: center; }
+/* Admin Login letter step: a full A-Z keyboard in QWERTY rows */
+.let-pad { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 6px; }
+.let-pad[hidden] { display: none; }
+.let-row { display: flex; gap: 5px; justify-content: center; }
+.let-pad button { font: inherit; cursor: pointer; border: 0; border-radius: 8px; background: #3a3f44; color: #fff; width: 40px; height: 46px; font-size: 1.05rem; padding: 0; }
+.let-pad button:active { background: #1d9bd7; }
+.let-pad .let-actions { margin-top: 4px; }
+.let-pad .let-actions button { width: 96px; height: 40px; font-size: .95rem; }
+.let-pad .lock-clear { background: transparent; border: 1px solid #5a6168; color: #ccc; }
+.let-pad .num-enter { background: #1d9bd7; }
+@media (max-width: 440px) { .let-row { gap: 4px; } .let-pad button { width: 31px; height: 42px; font-size: .95rem; } .let-pad .let-actions button { width: 88px; } }
