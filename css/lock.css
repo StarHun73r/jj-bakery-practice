@@ -20,19 +20,21 @@ body.locked > :not(.lock):not(script) { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) { .lock.wrong .lock-box { animation: none; } }
 .lock[hidden] { display: none; }
 .lock-pad .lock-clear { grid-column: 1 / 4; grid-row: 3; font-size: .95rem; background: transparent; border: 1px solid #5a6168; color: #ccc; }
-.lock-wip { margin: 0; font-size: .8rem; color: #8a929a; font-style: italic; }
+/* Front page messages from the Admin tab */
+.lock-msgs { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.lock-msgs:empty, .lock-msgs[hidden] { display: none; }
+.lock-box p.lock-msg { margin: 0; max-width: 300px; font-size: .8rem; white-space: pre-line; }
+.lock-box p.lock-msg.red { color: #ff6b6b; }
+.lock-box p.lock-msg.gray { color: #8a929a; font-style: italic; }
 /* Admin Login number pad: same buttons as the arrow pad, 3 across */
 .lock-pad.num-pad { grid-template-rows: repeat(4, 64px); }
 .lock-pad.num-pad button { grid-column: auto; grid-row: auto; }
 .lock-pad.num-pad .lock-clear { font-size: .95rem; }
-.lock-pad[hidden], .lock-wip[hidden] { display: none; }
+.lock-pad[hidden] { display: none; }
 .lock-pad.num-pad { grid-template-rows: repeat(4, 64px) 40px; }
 .lock-pad.num-pad .num-back { grid-column: 1 / 4; }
 .lock-pad .num-enter { background: #1d9bd7; font-size: 1rem; }
 .lock-dots { min-height: 18px; }
-/* Phone warning under the arrow pad */
-.lock-box p.lock-phone { max-width: 260px; font-size: .8rem; color: #ff6b6b; }
-.lock-phone[hidden] { display: none; }
 /* Admin Login letter step: a full A-Z keyboard in QWERTY rows */
 .let-pad { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 6px; }
 .let-pad[hidden] { display: none; }

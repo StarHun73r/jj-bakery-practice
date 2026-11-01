@@ -19,7 +19,7 @@
   var pinFor = null, pinDirs = null, pin = [];   // set while an Admin Login step is showing
   var step = null;   // null (arrow code), "letters" or "pin"
   var title = lock.querySelector("h1"), hint = lock.querySelector(".lock-box > p");
-  var arrowPad = lock.querySelector(".lock-pad"), wip = lock.querySelector(".lock-wip"), phone = lock.querySelector(".lock-phone");
+  var arrowPad = lock.querySelector(".lock-pad"), msgBoxes = lock.querySelectorAll(".lock-msgs");
   var numPad = document.createElement("div");
   numPad.className = "lock-pad num-pad";
   numPad.hidden = true;
@@ -58,7 +58,27 @@
     return pub;
   }
 
+  // Front page messages (Admin tab > Settings). Used until the admin saves their own list.
+  var DEFAULT_MESSAGES = [
+    { text: "Work in progress: some items are still missing photos or prices.\nCheck the Notes tab for updates.", color: "red", place: "top" },
+    { text: "Important: Website is not configured for phones current, recommended to use PC's during practices.", color: "red", place: "bottom" },
+  ];
+  function messages() { var m = (config().settings || {}).messages; return Array.isArray(m) ? m : DEFAULT_MESSAGES; }
+  function drawMessages() {
+    msgBoxes.forEach(function (box) {
+      box.innerHTML = "";
+      messages().forEach(function (m) {
+        if (!m || !String(m.text || "").trim() || (m.place === "bottom" ? "bottom" : "top") !== box.dataset.place) return;
+        var p = document.createElement("p");
+        p.className = "lock-msg " + (m.color === "gray" ? "gray" : "red");
+        p.textContent = m.text;   // plain text only; line breaks are kept by the CSS
+        box.appendChild(p);
+      });
+    });
+  }
+
   window.JJ = window.JJ || {};
+  JJ.defaultMessages = function () { return JSON.parse(JSON.stringify(DEFAULT_MESSAGES)); };
   JJ.codeHash = codeHash;
   JJ.config = config;
   JJ.user = null;
@@ -78,8 +98,8 @@
     arrowPad.hidden = !!acct;
     letPad.hidden = step !== "letters";
     numPad.hidden = step !== "pin";
-    if (wip) wip.hidden = !!acct;
-    if (phone) phone.hidden = !!acct;
+    msgBoxes.forEach(function (box) { box.hidden = !!acct; });
+    if (!acct) drawMessages();
     drawDots();
   }
   function typeLetter(ch) {

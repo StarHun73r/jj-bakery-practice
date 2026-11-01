@@ -516,6 +516,9 @@
     if (!JJ.user || JJ.user.level !== "admin") return;
     if (!draft) draft = cloneConfig();
     var accts = draft.accounts;
+    draft.settings = draft.settings || {};
+    if (!Array.isArray(draft.settings.messages)) draft.settings.messages = JJ.defaultMessages();
+    var msgs = draft.settings.messages;
     var html =
       "<section class='st-card'><div class='ad-head'><h2>Accounts</h2>" +
         "<div class='ad-save'>" +
@@ -548,6 +551,14 @@
         "<label class='ad-row'>Lock after <select id='ad-idle'>" + [1, 2, 3, 5, 10, 15, 30].map(function (m) {
           return "<option value='" + m + "'" + (m === +(draft.settings.idleMinutes || 5) ? " selected" : "") + ">" + m + " minute" + (m > 1 ? "s" : "") + "</option>";
         }).join("") + "</select> without use (also asks on every page load)</label>" +
+        "<h3>Front page messages</h3><p class='muted st-small'>Shown on the sign-in screen for everyone. Press Enter for a new line inside a message.</p>" +
+        msgs.map(function (m, i) {
+          return "<div class='ad-msg' data-i='" + i + "'><textarea class='ad-msg-text' rows='2' maxlength='300' aria-label='Message'>" + esc(m.text) + "</textarea>" +
+            "<select class='ad-msg-color' aria-label='Color'><option value='red'" + (m.color !== "gray" ? " selected" : "") + ">Red</option><option value='gray'" + (m.color === "gray" ? " selected" : "") + ">Gray</option></select>" +
+            "<select class='ad-msg-place' aria-label='Where'><option value='top'" + (m.place !== "bottom" ? " selected" : "") + ">Above the arrows</option><option value='bottom'" + (m.place === "bottom" ? " selected" : "") + ">Below the arrows</option></select>" +
+            "<button class='tbtn danger-fill ad-msg-del'>Remove</button></div>";
+        }).join("") +
+        (msgs.length < 10 ? "<button class='tbtn' id='ad-msg-add'>Add message</button>" : "") +
       "</section>" +
 
       "<section class='st-card'><h2>Everyone's stats" + (sync.on ? "" : " on this device") + "</h2>" +
@@ -589,6 +600,19 @@
       });
     };
     $("ad-idle").onchange = function () { draft.settings.idleMinutes = +this.value; setDirty(true); };
+    $("admin-page").querySelectorAll(".ad-msg").forEach(function (row) {
+      var m = msgs[+row.dataset.i];
+      row.querySelector(".ad-msg-text").onchange = function () { m.text = this.value; setDirty(true); };
+      row.querySelector(".ad-msg-color").onchange = function () { m.color = this.value; setDirty(true); };
+      row.querySelector(".ad-msg-place").onchange = function () { m.place = this.value; setDirty(true); };
+      row.querySelector(".ad-msg-del").onclick = function () { msgs.splice(+row.dataset.i, 1); setDirty(true); };
+    });
+    if ($("ad-msg-add")) $("ad-msg-add").onclick = function () {
+      msgs.push({ text: "", color: "red", place: "top" });
+      setDirty(true);
+      var all = $("admin-page").querySelectorAll(".ad-msg-text");
+      all[all.length - 1].focus();
+    };
     $("ad-publish").onclick = saveAccounts;
     if ($("ad-discard")) $("ad-discard").onclick = function () { draft = cloneConfig(); setDirty(false); };
     if ($("ad-import-btn")) $("ad-import-btn").onclick = importStats;

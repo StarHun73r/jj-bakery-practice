@@ -10,7 +10,14 @@
 //        "test"    - like a trainer (no Admin tab), but nothing it does is recorded or synced
 window.JJ_ACCOUNTS = {
   rev: 4,
-  settings: { idleMinutes: 5 },
+  settings: {
+    idleMinutes: 5,
+    // front page messages (Admin tab > Settings): color "red" or "gray", place "top" (above the arrows) or "bottom"
+    messages: [
+      { text: "Work in progress: some items are still missing photos or prices.\nCheck the Notes tab for updates.", color: "red", place: "top" },
+      { text: "Important: Website is not configured for phones current, recommended to use PC's during practices.", color: "red", place: "bottom" },
+    ],
+  },
   accounts: [
     { id: "owner", name: "Owner", level: "admin", hash: "8d9bb775", active: true, owner: true },
     { id: "test", name: "Test", level: "test", hash: "4ca44d95", code: "3c07", active: true },
