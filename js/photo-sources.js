@@ -30,7 +30,7 @@ window.PHOTO_SOURCES = {
   "iced-soy-milk": "incoming/51-iced-soy-milk.webp",
   "iced-rice-milk": "incoming/53-iced-rice-milk.webp",
   "green-bean-soup": "incoming/55-green-bean-soup.webp",
-  "bottled-milk-tea": "incoming/57-bottled-milk-tea.webp",
+  "bottled-milk-tea": "incoming/443-bottled-milk-tea.webp",
   "apple-juice": "incoming/59-apple-juice.webp",
   "mr-brown-blue-mtn": "incoming/61-mr-brown-blue-mtn.webp",
   "bottled-water": "incoming/63-bottled-water.webp",
@@ -205,4 +205,9 @@ window.PHOTO_SOURCES = {
   "egg-salad-sand": "incoming/429-egg-salad-sand.webp",
   "ham-egg-sand": "incoming/435-ham-egg-sand.webp",
   "garlic-stick": "incoming/439-garlic-stick.webp",
+  "mr-brown-extra": "incoming/444-mr-brown-extra.webp",
+  "qq-mochi-4": "incoming/446-qq-mochi-4.webp",
+  "tw-date": "incoming/450-tw-date.webp",
+  "tw-lotus": "incoming/454-tw-lotus.webp",
+  "tw-redbean": "incoming/458-tw-redbean.webp",
 };

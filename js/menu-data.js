@@ -85,7 +85,7 @@ window.MENU_TREE = [
       I("butter-rolls-5",      "奶油小餐包 (x5)Butt...", 3.55),
       I("wave-bread",          "波浪麵包 Wave Bread", 4.05),
       I("golden-horn-5",       "金牛角 (x5)Golden Horn R...", 5.85),
-      I("qq-mochi-4",          "QQ糬菓 (x4) Mochi S...", 0, { color: YELLOW }),
+      I("qq-mochi-4",          "QQ糬菓 (x4) Mochi S...", 5.05, { color: YELLOW }),
       I("day-old-3",           "隔夜麵包 (x3)Day old com...", 4.10),
       I("garlic-rolls-5",      "大蒜小餐包 (x5)Garli...", 3.55),
       I("korean-mochi-11",     "韓式烤麻糬 (x11) Korean S...", 8.95),
@@ -399,9 +399,9 @@ window.MENU_TREE = [
       I("tw-lotus-egg",     "蓮黃酥Lotus w/egg", 4.75, { color: BLUE }),          // 2nd-3rd characters hidden by glare
       I("tw-redbean-egg",   "豆沙蛋黃酥Red Bean w/...", 4.15, { color: BLUE }),
       I("tw-date-egg",      "棗泥蛋黃酥Date w/ egg", 4.35, { color: BLUE }),
-      I("tw-redbean",       "豆沙酥 Red Bean", 0, { color: BLUE }),
-      I("tw-lotus",         "蓮蓉酥 Lotus", 0, { color: BLUE }),
-      I("tw-date",          "棗泥酥Date", 0, { color: BLUE }),
+      I("tw-redbean",       "豆沙酥 Red Bean", 4.00, { color: BLUE }),
+      I("tw-lotus",         "蓮蓉酥 Lotus", 4.60, { color: BLUE }),
+      I("tw-date",          "棗泥酥Date", 4.20, { color: BLUE }),
       I("tw-lava",          "流心奶黃酥Lava Custard...", 7.00, { color: BLUE }),
     ]),
     F("超值禮盒Value Gift Set", BLUE, [

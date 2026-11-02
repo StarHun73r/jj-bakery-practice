@@ -211,4 +211,8 @@ window.FULL_NAMES = {
   "egg-salad-sand": "蛋沙拉三明治 Egg Salad Sandwich",
   "ham-egg-sand": "火腿蛋三明治 Ham & Egg Sandwich",
   "garlic-stick": "香蒜條 Garlic Bread",
+  "qq-mochi-4": "QQ糬菓(4入) Mochi Sweets (x4)",
+  "tw-date": "棗泥酥 Date Pastry",
+  "tw-lotus": "蓮蓉酥 Lotus Pastry",
+  "tw-redbean": "豆沙酥 Red Bean Pastry",
 };

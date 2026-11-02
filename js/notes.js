@@ -126,4 +126,9 @@ window.ITEM_NOTES = {
   "ham-egg-sand": "Cut side shows two pink ham stripes and a flat yellow egg sheet with tiny holes. No cucumber, no orange cheese.",
   "slice-choco-cherry": "Triangle slice: chocolate layers with white cream, a red cherry and chocolate curls on top (black-forest look).",
   "garlic-stick": "Long toasted bread stick with green parsley flecks, one per purple-printed bag. The button says Garlic stic; the tag says Garlic Bread.",
+  "qq-mochi-4": "Clear box of 4 golden oval cakes standing on edge, each with a white mochi stripe in the middle.",
+  "mr-brown-extra": "Black Mr. Brown can that says EXTRA SHOT, Black · Unsweet. No shelf tag. The Blue Mountain can is a different one.",
+  "tw-date": "Shiny golden-brown pastry with black poppy seeds only on top. Poppy only = date; flax only = lotus; poppy + flax = red bean. (The egg yolk ones have sesame or a plain top instead.)",
+  "tw-lotus": "Shiny golden-brown pastry with brown flax seeds only on top. Flax only = lotus; poppy only = date; poppy + flax = red bean.",
+  "tw-redbean": "Shiny golden-brown pastry with both black poppy seeds and brown flax seeds on top. Both = red bean; poppy only = date; flax only = lotus.",
 };
