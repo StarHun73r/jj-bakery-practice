@@ -584,7 +584,7 @@
   // Settings that decide what an order can contain; a pre-made next order
   // is only used if these haven't changed since it was made.
   function orderSettings() {
-    return [$("deck").value, $("difficulty").value, $("order-size").value, $("photo-only").checked, bagOn(), $("exp-mix").checked].join("|");
+    return [$("deck").value, $("difficulty").value, $("order-size").value, $("photo-only").checked, bagOn(), $("exp-mix").checked, Object.keys(excluded || {}).join(",")].join("|");
   }
 
   function practicePool(quiet) {
@@ -980,7 +980,7 @@
     return [].concat.apply([], c.rows.map(function (r) { return r.items; }))
       .map(function (id) { return ITEMS[id]; }).filter(Boolean);
   }
-  function deckItems() {
+  function wholeDeck() {
     var v = $("deck").value, all = Object.keys(ITEMS).map(function (k) { return ITEMS[k]; })
       .filter(function (it) { return it.practice !== false; });
     if (v === "all") return all;
@@ -990,6 +990,110 @@
     }
     return all.filter(function (it) { return it.path[0] === TREE[+v]; });
   }
+  // The deck minus anything unticked in Choose items (the whole deck if that leaves nothing).
+  function deckItems() {
+    var all = wholeDeck(), kept = all.filter(function (it) { return !excluded[it.id]; });
+    return kept.length ? kept : all;
+  }
+
+  // ---- Choose items: untick categories, folders or single items so they never come up in
+  // Practice, Find it or Flashcards. Kept in this browser as a list of left-out item ids. ----
+  var excluded = {};
+  try { (JSON.parse(localStorage.getItem("jj-excluded")) || []).forEach(function (id) { if (ITEMS[id]) excluded[id] = true; }); } catch (e) {}
+  var itemBoxes = [];   // every checkbox in the list, with the item ids it covers
+  function studyIds(node) {
+    if (node.type !== "folder") return ITEMS[node.id] && node.practice !== false ? [node.id] : [];
+    return [].concat.apply([], node.children.map(studyIds));
+  }
+  function showItemsCount() {
+    var off = Object.keys(excluded).length;
+    $("items-btn").textContent = off ? "Choose items (" + off + " off)" : "Choose items";
+    $("items-btn").classList.toggle("on", !!off);
+  }
+  function refreshItemBoxes() {
+    itemBoxes.forEach(function (b) {
+      var off = b.ids.filter(function (id) { return excluded[id]; }).length;
+      b.cb.checked = off < b.ids.length;
+      b.cb.indeterminate = off > 0 && off < b.ids.length;
+    });
+    var total = studyIds({ type: "folder", children: TREE }).length;
+    $("items-count").textContent = (total - Object.keys(excluded).length) + " of " + total + " included";
+    showItemsCount();
+  }
+  function setIncluded(ids, on) {
+    ids.forEach(function (id) { if (on) delete excluded[id]; else excluded[id] = true; });
+    try { localStorage.setItem("jj-excluded", JSON.stringify(Object.keys(excluded))); } catch (e) {}
+    refreshItemBoxes();
+  }
+  function buildItemsTree() {
+    itemBoxes = [];
+    var box = $("items-tree");
+    box.innerHTML = "";
+    (function add(nodes, parent) {
+      nodes.forEach(function (n) {
+        var ids = studyIds(n);
+        if (!ids.length) return;
+        var cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.onchange = function () { setIncluded(ids, cb.checked); };
+        itemBoxes.push({ cb: cb, ids: ids, node: n });
+        var label = document.createElement("label");
+        label.appendChild(cb);
+        label.appendChild(document.createTextNode(" " + n.name));
+        if (n.type === "folder") {
+          var det = document.createElement("details"), sum = document.createElement("summary");
+          det.className = "it-folder";
+          label.insertAdjacentHTML("beforeend", " <span class='muted'>(" + ids.length + ")</span>");
+          // ticking the box shouldn't also open or close the folder
+          label.onclick = function (e) { e.stopPropagation(); };
+          sum.appendChild(label);
+          det.appendChild(sum);
+          parent.appendChild(det);
+          add(n.children, det);
+        } else {
+          label.className = "it-item";
+          if (ITEMS[n.id].full !== n.name) label.title = ITEMS[n.id].full;
+          parent.appendChild(label);
+        }
+      });
+    })(TREE, box);
+    refreshItemBoxes();
+  }
+  function filterItemsTree() {
+    var q = $("items-search").value.trim().toLowerCase();
+    itemBoxes.forEach(function (b) {
+      var el = b.node.type === "folder" ? b.cb.closest("details") : b.cb.parentNode;
+      var hit = !q || b.ids.some(function (id) { return (ITEMS[id].name + " " + ITEMS[id].full).toLowerCase().indexOf(q) >= 0; });
+      el.hidden = !hit;
+      if (b.node.type === "folder") el.open = !!q && hit;
+    });
+  }
+  $("items-btn").onclick = function () {
+    buildItemsTree();
+    $("items-search").value = "";
+    $("items-overlay").classList.remove("hidden");
+  };
+  $("items-search").oninput = filterItemsTree;
+  // Include all / Exclude all act on what the search shows, or everything when it's empty
+  function shownIds() {
+    return [].concat.apply([], itemBoxes.filter(function (b) {
+      return b.node.type !== "folder" && !b.cb.parentNode.hidden && !b.cb.parentNode.closest("details[hidden]");
+    }).map(function (b) { return b.ids; }));
+  }
+  $("items-all").onclick = function () { setIncluded(shownIds(), true); };
+  $("items-none").onclick = function () { setIncluded(shownIds(), false); };
+  function closeItems() {
+    $("items-overlay").classList.add("hidden");
+    var deckLeft = wholeDeck().some(function (it) { return !excluded[it.id]; });
+    if (!deckLeft) toast("Everything in this deck is unticked, so the whole deck is used");
+    bags = {};
+    if (state.mode === "flash") nextFlash();
+    if (state.mode === "drill") nextDrill();
+    if (state.mode === "practice") newOrder();
+  }
+  $("items-done").onclick = closeItems;
+  $("items-overlay").onclick = function (e) { if (e.target === this) closeItems(); };
+  showItemsCount();
 
   // ---- Flashcards: photo first, then reveal name + where it is ----
   var flash = { id: null, shown: false };
