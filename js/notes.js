@@ -111,7 +111,7 @@ window.ITEM_NOTES = {
   "four-spirits-soup": "Frozen round tub of cloudy grey-white soup; on the purple 冷凍即食品 label the check mark is next to 四神豬肚湯.",
   "lotus-seed-soup": "Frozen round tub of pale golden sweet soup with a red goji berry showing; check mark next to 蓮子銀耳湯 on the label.",
   "beef-soup-32": "Smaller frozen tub of dark brown beef soup with orange chili oil on top; check mark next to 紅燒牛肉麵湯底. Small 32 oz tub = $9.70.",
-  "beef-soup-64": "Large frozen tub of red-brown beef soup with orange chili oil all over the lid; check mark next to 紅燒牛肉麵湯底. Large 64 oz tub = $18.85.",
+  "beef-soup-64": "Large frozen tub of red-brown beef soup with orange chili oil all over the lid (bigger than the 32 oz tub). Large 64 oz tub = $18.85.",
   "lamb-soup": "Frozen round tub of cloudy light-brown soup; check mark next to 羊肉爐 on the label.",
   "spicy-pig-ear": "Flat black rectangular tray with a white sticker that says 麻辣豬耳; sliced pig ear in red chili oil.",
   "smoked-duck-box": "Flat black rectangular tray with the purple 小雅屋 label on the lid (no check mark). Smoked duck pieces inside.",
