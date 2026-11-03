@@ -9,7 +9,7 @@
 //        "trainee" - every practice mode and the Sheet, but not Photos
 //        "test"    - like a trainer (no Admin tab), but nothing it does is recorded or synced
 window.JJ_ACCOUNTS = {
-  rev: 10,
+  rev: 11,
   settings: {
     idleMinutes: 5,
     // front page messages (Admin tab > Settings): color "red" or "gray", place "top" (above the arrows) or "bottom"
@@ -22,6 +22,6 @@ window.JJ_ACCOUNTS = {
     { id: "owner", name: "Owner", level: "admin", hash: "8d9bb775", active: true, owner: true },
     { id: "test", name: "Test", level: "test", hash: "4ca44d95", code: "3c07", active: true },
     { id: "trainee", name: "Jonathan", level: "trainee", hash: "eb036925", code: "1c90", active: true },
-    { id: "mire", name: "Mire", level: "trainee", hash: "3e8a43c5", active: true },
+    { id: "mire", name: "Mira", level: "trainee", hash: "ea1eac75", code: "daa3", active: true },
   ],
 };
