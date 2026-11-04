@@ -37,7 +37,7 @@
     person: '<svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="12" ' + P + '/><circle cx="15" cy="12" r="4.5" ' + P + '/><path d="M7 24c2-4 5-5.5 8-5.5s6 1.5 8 5.5" ' + P + '/></svg>',
     clip: '<svg viewBox="0 0 26 30"><path d="M5 4h4v3h8V4h4v24H5z M9 4V2h8v5 M9 17l3 3 6-6" ' + P + '/></svg>',
     gear: '<svg viewBox="0 0 30 30"><circle cx="15" cy="15" r="4" ' + P + '/><path d="M13 2h4l1 4 3 1.5 3.5-2 3 3-2 3.5L27 15l-1.5 3 2 3.5-3 3-3.5-2L18 24l-1 4h-4l-1-4-3-1.5-3.5 2-3-3 2-3.5L3 15l1.5-3-2-3.5 3-3 3.5 2L12 6z" ' + P + '/></svg>',
-    out: '<svg viewBox="0 0 26 24"><path d="M17 5.5A9 9 0 103 12a9 9 0 0014 6.5M10 12h15M20 7l5 5-5 5" ' + P + ' stroke-width="1.8"/></svg>',
+    out: '<svg viewBox="0 0 26 24"><path d="M17.5 5.2a9.5 9.5 0 100 13.6M8.5 12h16M19.5 7l5 5-5 5" ' + P + ' stroke-width="1.8"/></svg>',
     refresh: '<svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-3-6.2 M17 2v4h-4" ' + P + ' stroke-width="2"/></svg>',
     search: '<svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="7" ' + P + ' stroke-width="1.8"/><path d="M15 15l6 6" ' + P + ' stroke-width="1.8"/></svg>',
     print: '<svg viewBox="0 0 24 24"><path d="M6 9V3h12v6M6 17H3V9h18v8h-3M6 14h12v7H6z" ' + P + '/></svg>',
