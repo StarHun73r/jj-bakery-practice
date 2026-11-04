@@ -10,9 +10,8 @@
   var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return "&#" + c.charCodeAt(0) + ";"; }); };
   var ipad = document.querySelector(".ipad"), screen = ipad.querySelector(".screen");
 
-  // Employees in the report lists. The real register lists staff by full name; only the two
-  // shift logins are copied here until the user says real names may go on the public site.
-  var EMPLOYEES = ["Morning Shift", "Night Shift"];
+  // Employees in the report lists, in the register's order and spelling (user OK'd real names, 2026-11-04)
+  var EMPLOYEES = ["Irene Boss", "Yan Cao", "Jay Hsiao", "Morning Shift", "Night Shift", "Billy Wang", "CINDY YEH"];
   var CATEGORIES = [   // Product Setup tiles, text exactly as on that screen; tree = top-folder index in MENU_TREE
     ["麵包Bread", "blue", 0], ["餅乾&甜點Cook...", "blue", 1], ["蛋糕&慕斯Cake...", "blue", 2], ["飲料Drink", "blue", 3], ["其他Other", "blue", 4],
     ["冷凍食品Frozen...", "blue", 5], ["中秋節月餅 Moo...", "orange", 6], ["W-蛋糕&慕斯Ca...", "red", 7], ["W-餅乾&甜點Co...", "red", 8], ["W-麵包Bread", "red", 9],
