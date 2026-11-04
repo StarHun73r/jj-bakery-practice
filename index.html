@@ -80,7 +80,11 @@
         <option value="hard">Hard</option>
       </select>
       <label class="chk"><input type="checkbox" id="photo-only"> Photos only</label>
-      <label class="chk" title="Try out the new item mix: about half bread and Danish, a drink every couple of orders, cakes every 6-12 orders, frozen about once a dozen. Turn off for the usual Random mix."><input type="checkbox" id="exp-mix"> Experimental (Rebalancing Changes)</label>
+      <select id="mix-mode" aria-label="Item mix" title="Random: every item can come up, breads more often. Experimental: about half bread and Danish, a drink every couple of orders, cakes every 6-12 orders, frozen about once a dozen. Realistic: orders shaped like real customers, such as a few buns, a loaf, slices of cake or a drink with bread. Realistic sets its own order size.">
+        <option value="random">Random</option>
+        <option value="experimental">Experimental (Rebalancing Changes)</option>
+        <option value="realistic">Realistic (Rebalancing Changes)</option>
+      </select>
       <label class="chk">Order card
         <select id="cust-pos"><option value="side">Side</option><option value="bottom">Bottom</option></select>
       </label>
@@ -443,7 +447,7 @@
   <script src="js/full-names.js?v=94fc3be6"></script>
   <script src="js/display-cases.js?v=5e42c7f5"></script>
   <script src="js/notes.js?v=ddecf486"></script>
-  <script src="js/app.js?v=a0414b4a"></script>
+  <script src="js/app.js?v=db574334"></script>
   <script src="js/revel.js?v=3bd13d09"></script>
   <script src="js/sync-config.js?v=c83f5ef1"></script>
   <script src="js/stats.js?v=b93f4b43"></script>

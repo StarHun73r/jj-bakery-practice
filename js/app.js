@@ -577,16 +577,37 @@
   // ("Every item once" still goes through every item exactly once.)
   var BREAD_WEIGHT = 3;
   function pickCommon(pool) {
-    var weights = pool.map(function (it) { return it.path[0] && it.path[0].name === "麵包Bread" ? BREAD_WEIGHT : 1; });
-    var r = Math.random() * weights.reduce(function (a, b) { return a + b; }, 0);
-    for (var i = 0; i < pool.length; i++) { r -= weights[i]; if (r < 0) return pool[i]; }
-    return pool[pool.length - 1];
+    var isBread = function (it) { return it.path[0] && it.path[0].name === "麵包Bread"; };
+    var bread = pool.filter(isBread), rest = pool.filter(function (it) { return !isBread(it); });
+    var breadShare = bread.length * BREAD_WEIGHT / (bread.length * BREAD_WEIGHT + rest.length);
+    return Math.random() < breadShare ? pickFresh("practice-bread", bread) : pickFresh("practice-rest", rest);
+  }
+
+  // ---- Fewer repeats ----
+  // Once an item is picked it sits out until most of its pool (FRESH_GAP) has had a turn,
+  // so the same items don't keep coming back while others never show up.
+  var FRESH_GAP = 0.6, recent = {};
+  function freshOnly(kind, pool) {
+    var gap = Math.floor(pool.length * FRESH_GAP), blocked = {};
+    if (gap) (recent[kind] || []).slice(-gap).forEach(function (id) { blocked[id] = true; });
+    var left = pool.filter(function (it) { return !blocked[it.id]; });
+    return left.length ? left : pool;
+  }
+  function remember(kind, id) {
+    var list = recent[kind] = recent[kind] || [];
+    list.push(id);
+    if (list.length > 600) list.splice(0, 100);
+  }
+  function pickFresh(kind, pool) {
+    var it = pick(freshOnly(kind, pool));
+    remember(kind, it.id);
+    return it;
   }
 
   // Settings that decide what an order can contain; a pre-made next order
   // is only used if these haven't changed since it was made.
   function orderSettings() {
-    return [$("deck").value, $("difficulty").value, $("order-size").value, $("photo-only").checked, bagOn(), $("exp-mix").checked, Object.keys(excluded || {}).join(",")].join("|");
+    return [$("deck").value, $("difficulty").value, $("order-size").value, $("photo-only").checked, bagOn(), $("mix-mode").value, Object.keys(excluded || {}).join(",")].join("|");
   }
 
   function practicePool(quiet) {
@@ -603,7 +624,7 @@
   }
 
   // Pick 1-10 items: mostly one of each, sometimes 2-4 of the same thing.
-  // ---- Experimental mix (the "Experimental (Rebalancing Changes)" box) ----
+  // ---- Experimental mix ("Experimental (Rebalancing Changes)" in the mix dropdown) ----
   // Closer to what the store actually rings up. Per order:
   //   drink      about every other order, at most 2
   //   cake/slice about every 6-12 orders (1 in 9)
@@ -626,7 +647,7 @@
   function planMix(d, pool, fixed, size) {
     var groups = {};
     pool.forEach(function (it) { var g = mixGroup(it); (groups[g] = groups[g] || []).push(it); });
-    var take = function (g) { var p = groups[g]; return p && p.length ? (bagOn() ? drawFromBag("mix-" + g, p) : pick(p)) : null; };
+    var take = function (g) { var p = groups[g]; return p && p.length ? (bagOn() ? drawFromBag("mix-" + g, p) : pickFresh("mix-" + g, p)) : null; };
     var extras = [];
     if (Math.random() < 0.5) { extras.push("drink"); if (Math.random() < 0.15) extras.push("drink"); }
     if (Math.random() < 1 / 9) extras.push("cake");
@@ -648,23 +669,67 @@
       for (var i = 0, acc = 0; i < FILL.length; i++) { acc += FILL[i][1]; if (r < acc) { g = FILL[i][0]; break; } }
       var it = take(g) || take("bread") || pick(pool);
       // a few of the same bun is common; never for drinks
-      var qty = !fixed && g === "bread" && left >= 2 && Math.random() < 0.25 ? rand(2, Math.min(left, 3)) : 1;
+      var qty = !fixed && g === "bread" && left >= 2 && Math.random() < SAME_ITEM ? rand(2, Math.min(left, 3)) : 1;
       add(it, qty);
     }
     return lines.sort(function () { return Math.random() - 0.5; });
   }
 
+  // ---- Realistic mix ("Realistic (Rebalancing Changes)" in the mix dropdown) ----
+  // Each order is a type of customer, not a list of random items. weight = how common;
+  // main = [group, fewest, most]; side = [group, fewest, most, chance of adding it].
+  // Most orders come to about $10, like the store's real orders.
+  var SHOPPERS = [
+    { weight: 46, main: ["bread", 2, 5], side: ["breadOther", 1, 1, 0.2] },    // a few buns
+    { weight: 12, main: ["bread", 1, 2] },                                     // quick stop
+    { weight: 12, main: ["bread", 1, 3], side: ["drink", 1, 2, 1] },           // bread and a drink
+    { weight: 8, main: ["toast", 1, 1], side: ["bread", 1, 2, 0.6] },          // a loaf
+    { weight: 10, main: ["sweet", 1, 3], side: ["bread", 1, 2, 0.4] },         // cookies and sweets
+    { weight: 5, main: ["slice", 1, 4], side: ["bread", 1, 2, 0.2] },          // cake slices
+    { weight: 2, main: ["cake", 1, 1], side: ["sweet", 1, 2, 0.2] },           // a whole cake
+    { weight: 5, main: ["frozen", 1, 2], side: ["bread", 1, 3, 0.5] },         // frozen food
+    { weight: 3, main: ["other", 1, 2], side: ["bread", 1, 2, 0.5] },          // other products
+  ];
+  function realGroup(it) {
+    var g = mixGroup(it);
+    return g === "cake" && it.path[1] && it.path[1].name === "切片Slice" ? "slice" : g;
+  }
+  function planRealistic(d, pool) {
+    var groups = {};
+    pool.forEach(function (it) { var g = realGroup(it); (groups[g] = groups[g] || []).push(it); });
+    var open = SHOPPERS.filter(function (s) { return groups[s.main[0]]; });
+    if (!open.length) open = [{ main: [null, 1, 4] }];    // a deck with none of these groups
+    var who = open[pickSize(open.map(function (s) { return s.weight || 1; })) - 1];
+    var lines = [];
+    function buy(spec) {
+      var p = (spec[0] && groups[spec[0]]) || pool, kind = "real-" + (spec[0] || "all");
+      var picks = rand(spec[1], spec[2]);
+      for (var i = 0; i < picks; i++) {
+        var it = bagOn() ? drawFromBag(kind, p) : pickFresh(kind, p);
+        var line = { itemId: it.id, mods: randomMods(it, d.modChance), qty: spec[0] === "bread" && Math.random() < SAME_ITEM ? 2 : 1 };
+        var dup = lines.find(function (l) { return lineKey(l) === lineKey(line); });
+        if (dup) dup.qty += line.qty; else lines.push(line);
+      }
+    }
+    buy(who.main);
+    if (who.side && groups[who.side[0]] && Math.random() < who.side[3]) buy(who.side);
+    return lines.sort(function () { return Math.random() - 0.5; });
+  }
+
+  // chance of a customer wanting two or more of the same item
+  var SAME_ITEM = 0.15;
   function planOrder(quiet) {
     var d = DIFF[$("difficulty").value], pool = practicePool(quiet);
-    var fixed = $("order-size").value === "3";
-    if ($("exp-mix").checked) {
+    var fixed = $("order-size").value === "3", mix = $("mix-mode").value;
+    if (mix === "realistic") return { customer: pick(NAMES), lines: planRealistic(d, pool), card: pick(CFG.cardTypes), settings: orderSettings() };
+    if (mix === "experimental") {
       var mixed = planMix(d, pool, fixed && pool.length >= 3, fixed ? 3 : pickSize(d.sizes));
       return { customer: pick(NAMES), lines: mixed, card: pick(CFG.cardTypes), settings: orderSettings() };
     }
     var left = fixed ? 3 : pickSize(d.sizes), lines = [], tries = 0;
     while (left > 0 && tries++ < 50) {
       var it = bagOn() ? drawFromBag("practice", pool) : pickCommon(pool);
-      var qty = !fixed && left >= 2 && Math.random() < 0.25 ? rand(2, Math.min(left, 4)) : 1;
+      var qty = !fixed && left >= 2 && Math.random() < SAME_ITEM ? rand(2, Math.min(left, 4)) : 1;
       var line = { itemId: it.id, mods: randomMods(it, d.modChance), qty: qty };
       var dup = lines.find(function (l) { return lineKey(l) === lineKey(line); });
       if (dup && fixed && pool.length >= 3) continue;   // 3-item mode: three different items
@@ -697,8 +762,17 @@
 
   // Items per customer: 1-10 (sized by difficulty) or always 3 different items, for easier
   // training. Remembered in this browser; difficulty only matters for 1-10.
-  function applyOrderSize() { $("difficulty").disabled = $("order-size").value === "3"; }
-  try { if (localStorage.getItem("jj-order-size") === "3") $("order-size").value = "3"; } catch (e) {}
+  // Realistic decides the size itself from the type of customer, so both pickers grey out.
+  function applyOrderSize() {
+    var real = $("mix-mode").value === "realistic";
+    $("order-size").disabled = real;
+    $("difficulty").disabled = real || $("order-size").value === "3";
+  }
+  try {
+    if (localStorage.getItem("jj-order-size") === "3") $("order-size").value = "3";
+    var savedMix = localStorage.getItem("jj-mix-mode") || (localStorage.getItem("jj-exp-mix") === "on" ? "experimental" : "random");
+    if ($("mix-mode").querySelector("[value='" + savedMix + "']")) $("mix-mode").value = savedMix;
+  } catch (e) {}
   applyOrderSize();
   $("order-size").onchange = function () {
     try { localStorage.setItem("jj-order-size", this.value); } catch (e) {}
@@ -706,9 +780,9 @@
     if (state.mode === "practice") newOrder();
   };
 
-  try { $("exp-mix").checked = localStorage.getItem("jj-exp-mix") === "on"; } catch (e) {}
-  $("exp-mix").onchange = function () {
-    try { localStorage.setItem("jj-exp-mix", this.checked ? "on" : "off"); } catch (e) {}
+  $("mix-mode").onchange = function () {
+    try { localStorage.setItem("jj-mix-mode", this.value); } catch (e) {}
+    applyOrderSize();
     if (state.mode === "practice") newOrder();
   };
 
@@ -912,20 +986,26 @@
     bags = {};
   };
   var LEARNED = 3; // box reached after 3 clean answers in a row
+  var BOX_WEIGHT = [4, 3, 2, 1.5, 1];   // how often each box comes up: unknown items 4x a mastered one
 
   function boxOf(kind, id) { return (learn[kind] && learn[kind][id]) || 0; }
   function markLearn(kind, id, ok) {
     learn[kind] = learn[kind] || {};
     learn[kind][id] = ok ? Math.min(4, boxOf(kind, id) + 1) : 0;
+    // a miss doesn't have to sit out, so it can come back soon
+    if (!ok && recent[kind]) recent[kind] = recent[kind].filter(function (x) { return x !== id; });
     if (JJ.user && JJ.user.level === "test") return;   // test accounts leave nothing behind
     try { localStorage.setItem(learnKey(), JSON.stringify(learn)); } catch (e) {}
   }
   function pickWeighted(kind, pool, avoidId) {
     if (pool.length > 1) pool = pool.filter(function (it) { return it.id !== avoidId; });
-    var weights = pool.map(function (it) { return Math.pow(2, 4 - boxOf(kind, it.id)); });
+    pool = freshOnly(kind, pool);
+    var weights = pool.map(function (it) { return BOX_WEIGHT[boxOf(kind, it.id)]; });
     var r = Math.random() * weights.reduce(function (a, b) { return a + b; }, 0);
-    for (var i = 0; i < pool.length; i++) { r -= weights[i]; if (r < 0) return pool[i]; }
-    return pool[pool.length - 1];
+    var it = pool[pool.length - 1];
+    for (var i = 0; i < pool.length; i++) { r -= weights[i]; if (r < 0) { it = pool[i]; break; } }
+    remember(kind, it.id);
+    return it;
   }
   function learnedCount(kind, pool) {
     return pool.filter(function (it) { return boxOf(kind, it.id) >= LEARNED; }).length;
