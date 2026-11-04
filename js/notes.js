@@ -131,4 +131,12 @@ window.ITEM_NOTES = {
   "tw-date": "Shiny golden-brown pastry with black poppy seeds only on top. Poppy only = date; flax only = lotus; poppy + flax = red bean. (The egg yolk ones have sesame or a plain top instead.)",
   "tw-lotus": "Shiny golden-brown pastry with brown flax seeds only on top. Flax only = lotus; poppy only = date; poppy + flax = red bean.",
   "tw-redbean": "Shiny golden-brown pastry with both black poppy seeds and brown flax seeds on top. Both = red bean; poppy only = date; flax only = lotus.",
+  "cream-puff-box": "Pink and white polka-dot box with a 日式泡芙 Japanese Cream Puff label on the pink lid. The Hokkaido Chiffon box looks the same, but its label says 北海道戚風.",
+  "scallion-hot-dog": "Flat round bun covered in chopped green onion and egg, with sesame seeds and slices of hot dog peeking through. The Scallion Bun has no hot dog.",
+  "8-vanilla-straw": "White whipped-cream cake with piped swirls, kiwi, strawberry and peach on top and sliced almonds pressed on the sides.",
+  "8-ny-cheese": "Tall golden baked cheesecake with a ring of halved strawberries and cream swirls on top and piped cream around the base.",
+  "8-choco-symphony": "Dark cake covered all over in chocolate shavings, with chocolate sticks, strawberries and blueberries piled in the middle of the top.",
+  "taiwan-tart-1": "Single round egg tart in a foil cup with a shiny yellow custard top, in a purple-printed bag. Deeper than the Portuguese tart and not browned on top.",
+  "wife-cake-6": "Box of 6 with a gold 老婆餅 sticker. Golden-brown pastries with a dotted top in pink wrappers. The Maltose Pastry box looks the same, but its sticker says 太陽餅 and its pastries are pale.",
+  "sun-cake-6": "Box of 6 with a gold 太陽餅 sticker. Pale pastries with a few small holes on top in pink wrappers. The Wife Pastry box looks the same, but its sticker says 老婆餅 and its pastries are golden-brown.",
 };

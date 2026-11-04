@@ -281,6 +281,7 @@
     $("pay-btn").classList.toggle("ready", n > 0);
     $("hold-btn").classList.toggle("ready", n > 0);
     $("send-btn").classList.toggle("ready", n > 0);
+    if (JJ.onTicket) JJ.onTicket(n, t.total);
   }
 
   // Swipe a line to the left to show Remove; a long swipe removes it straight away.
@@ -368,7 +369,7 @@
   //  Modifier popup (for items with options)
   // ------------------------------------------------------------------
   function tapItem(it) {
-    if (state.mode === "photos") return openPhotoEditor(it);
+    if (state.mode === "photos") return it.registerOnly ? toast("P- and W- buttons don't use photos") : openPhotoEditor(it);
     if (!it.modifiers.length) return addLine(it.id, []);
     openMods(it, null);
   }
@@ -437,7 +438,7 @@
       if (!res.perfect) return showResult(res);
     }
     var t = totals();
-    state.checkout = { order: rand(12000000, 12999999), total: t.total, sub: t.sub, tax: t.tax, payments: [], entry: null, card: null };
+    state.checkout = { order: (JJ.orderNo && JJ.orderNo()) || rand(12000000, 12999999), total: t.total, sub: t.sub, tax: t.tax, payments: [], entry: null, card: null };
     $("co-order").textContent = state.checkout.order;
     $("co-dialog").classList.add("hidden");
     renderCheckout();
@@ -519,6 +520,7 @@
 
   function finishCheckout() {
     if (balanceCents() > 0) return;
+    if (JJ.onPaid) JJ.onPaid(state.checkout);
     closePay();
     state.checkout = null;
     if (state.practice) completeOrder();
@@ -967,7 +969,7 @@
 
   // "Deck" picks which top-level folder to study.
   TREE.forEach(function (f, i) {
-    var hasItems = Object.keys(ITEMS).some(function (id) { return ITEMS[id].path[0] === f; });
+    var hasItems = !f.registerOnly && Object.keys(ITEMS).some(function (id) { return ITEMS[id].path[0] === f; });
     if (f.type === "folder" && hasItems) $("deck").insertAdjacentHTML("beforeend", "<option value='" + i + "'>" + esc(f.name) + "</option>");
   });
   var CASES = window.DISPLAY_CASES || [];
@@ -1266,7 +1268,7 @@
   (function () {
     var sel = $("sheet-folder");
     TREE.forEach(function (n, i) {
-      if (n.type !== "folder") return;
+      if (n.type !== "folder" || n.registerOnly) return;
       var o = document.createElement("option");
       o.value = i;
       o.textContent = n.name;
@@ -1310,7 +1312,7 @@
         box.appendChild(sec);
       }
       nodes.forEach(function (n) { if (n.type === "folder") walk(n.children, path.concat(n)); });
-    })(want === "all" ? TREE : TREE[+want].children, want === "all" ? [] : [TREE[+want]]);
+    })(want === "all" ? TREE.filter(function (n) { return !n.registerOnly; }) : TREE[+want].children, want === "all" ? [] : [TREE[+want]]);
     $("sheet-count").textContent = shown + " of " + total + " items";
     if (!shown) box.innerHTML = "<div class='sheet-sec muted'>Nothing matches.</div>";
   }
@@ -1378,13 +1380,15 @@
     if (mode === "cases") renderCases();
     document.querySelector(".sheet-panel").hidden = mode !== "sheet";
     if (mode === "sheet") renderSheet();
+    if (JJ.onModeRevel) JJ.onModeRevel(mode);
     if (JJ.onMode) JJ.onMode(mode);
     updatePhotoCount();
     relayout();
   }
 
   // shared with stats.js
-  JJ.items = ITEMS; JJ.setMode = setMode; JJ.mode = function () { return state.mode; }; JJ.toast = toast;
+  JJ.items = ITEMS; JJ.tree = TREE; JJ.money = money; JJ.ticketCount = function () { return state.ticket.length; };
+  JJ.setMode = setMode; JJ.mode = function () { return state.mode; }; JJ.toast = toast;
 
   function relayout() { fitIpad(); lastSize = ""; sizeButtons(); }
   // Practice order card: on the side or along the bottom (remembered in this browser)
@@ -1598,7 +1602,7 @@
     updatePhotoCount();
   }
   function updatePhotoCount() {
-    var total = Object.keys(ITEMS).length, have = Object.keys(PHOTOS).length;
+    var total = Object.keys(ITEMS).filter(function (id) { return !ITEMS[id].registerOnly; }).length, have = Object.keys(PHOTOS).length;
     $("photo-count").textContent = have + " of " + total + " items have photos";
   }
 
@@ -1633,7 +1637,11 @@
   $("difficulty").onchange = newOrder;
   $("photo-only").onchange = function () { if (state.practice) newOrder(); };
 
-  $("back-btn").onclick = function () { if (state.path.length) { state.path.pop(); renderMenu(); } };
+  // Back steps out of a folder; at the Top Menu the register's back arrow goes to the Revel dashboard (js/revel.js)
+  $("back-btn").onclick = function () {
+    if (state.path.length) { state.path.pop(); renderMenu(); }
+    else if ((state.mode || "register") === "register" && JJ.showDash) JJ.showDash();
+  };
   $("search-btn").onclick = function () {
     if (state.mode === "drill") return toast("Search is off in Find it");
     state.search === null ? openSearch() : closeSearch();

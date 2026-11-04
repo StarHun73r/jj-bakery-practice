@@ -215,4 +215,11 @@ window.FULL_NAMES = {
   "tw-date": "棗泥酥 Date Pastry",
   "tw-lotus": "蓮蓉酥 Lotus Pastry",
   "tw-redbean": "豆沙酥 Red Bean Pastry",
+  "slice-taro": "Slice芋頭蛋糕Vanilla Chiffon w/Taro",
+  "slice-french-latte": "Slice法式拿鐵 French Latte",
+  "scallion-hot-dog": "蔥花熱狗 Hot Dog Bun w/ Scallion",
+  "8-vanilla-straw": "香草戚風夾草莓 8\"Vanilla Chiffon w/Strawberry Filling",
+  "8-ny-cheese": "紐約起司蛋糕(8\") N.Y. Cheese Cake (8\")",
+  "8-choco-symphony": "巧克力交響曲(8\") Chocolate Symphony (8\")",
+  "taiwan-tart-1": "台式蛋塔 Taiwanese Egg Tart",
 };

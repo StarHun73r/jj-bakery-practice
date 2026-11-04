@@ -54,7 +54,7 @@ window.SITE_NOTES = { text: "", saved: "", by: "" };
 
   // Worked out from the menu every time, so it's always current.
   function missingSummary() {
-    var items = Object.keys(JJ.items).map(function (k) { return JJ.items[k]; });
+    var items = Object.keys(JJ.items).map(function (k) { return JJ.items[k]; }).filter(function (it) { return !it.registerOnly; });
     var photos = window.PHOTO_FILES || {};
     var noPhoto = items.filter(function (it) { return !photos[it.id]; });
     var noPrice = items.filter(function (it) { return !(it.price > 0) && it.practice !== false; });
